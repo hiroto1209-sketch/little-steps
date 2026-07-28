@@ -1,0 +1,17 @@
+{
+  "name": "little steps — ADHDにやさしいSMART目標アプリ",
+  "short_name": "little steps",
+  "description": "大きな目標を、脳がフリーズしない小さな一歩に分けるSMART目標アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F4FF",
+  "theme_color": "#6C5CE7",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
