@@ -4,19 +4,23 @@
 
 ```
 little-steps-pwa/
-├── index.html      ← アプリ本体
-├── manifest.json   ← ホーム画面アイコンの設定
-├── sw.js           ← オフラインでも開けるようにする仕組み
-├── icons/          ← アイコン画像一式
+├── index.html              ← アプリ本体
+├── manifest.json           ← ホーム画面アイコンの設定
+├── sw.js                   ← オフラインでも開けるようにする仕組み
+├── icon-192.png            ← アイコン画像
+├── icon-512.png            ← アイコン画像
+├── icon-maskable-512.png   ← アイコン画像(Android用)
+├── apple-touch-icon.png    ← アイコン画像(iOS用)
 └── README.md
 ```
+
+すべて同じ階層(フォルダなし)に置く構成です。
 
 ## 1. GitHubにリポジトリを作る
 
 1. GitHubで新しいリポジトリを作成(例: `little-steps`)。Public / Privateどちらでも可(Privateの場合はGitHub Pagesが有料プラン限定になる場合があります。迷ったらPublicでOKです)
-2. このフォルダの中身(`index.html`・`manifest.json`・`sw.js`・`icons/`)をそのリポジトリの**直下**にアップロード
+2. このフォルダの中身(`index.html`・`manifest.json`・`sw.js`・アイコン画像4つ)をそのリポジトリの**直下**にすべてアップロード
    - GitHubのWeb画面右上「Add file → Upload files」でドラッグ&ドロップでもOK
-   - `icons`フォルダごとアップロードしてください
 
 ## 2. GitHub Pagesを有効にする
 

@@ -1,14 +1,14 @@
 // Minimal offline-first shell cache. Bump CACHE_NAME whenever index.html
 // (or anything else in ASSETS) changes, so old caches are dropped.
-const CACHE_NAME = "little-steps-v2";
+const CACHE_NAME = "little-steps-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png",
-  "./icons/apple-touch-icon.png",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png",
+  "./apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (event) => {
