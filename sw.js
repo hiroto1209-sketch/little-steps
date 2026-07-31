@@ -1,6 +1,6 @@
 // Minimal offline-first shell cache. Bump CACHE_NAME whenever index.html
 // (or anything else in ASSETS) changes, so old caches are dropped.
-const CACHE_NAME = "little-steps-v1";
+const CACHE_NAME = "little-steps-v2";
 const ASSETS = [
   "./",
   "./index.html",

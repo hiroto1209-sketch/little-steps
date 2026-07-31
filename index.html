@@ -18,42 +18,69 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
 <script>
-// ---------- window.storage polyfill (localStorage-backed) ----------
+// ---------- window.storage polyfill (localStorage-backed, with in-memory fallback) ----------
 // Mirrors the get/set/delete/list interface the app was originally built
 // against, so the app code itself needs no changes. "shared" is accepted
 // for interface compatibility but is not meaningful outside that original
 // environment — everything here is local to this browser only.
+//
+// Some browsing contexts (Private Browsing, certain in-app webviews, storage
+// quota set to 0) make localStorage.setItem throw on every call. Rather than
+// showing a permanent "save failed" error in that case, we detect it once
+// up front and fall back to an in-memory store so the app still works for
+// the current session — it just won't survive a reload in that situation.
 (function () {
   const PREFIX = "little-steps:";
-  function k(key) {
-    return PREFIX + key;
+  const k = (key) => PREFIX + key;
+
+  let localStorageWorks = true;
+  try {
+    const testKey = k("__test__");
+    localStorage.setItem(testKey, "1");
+    localStorage.removeItem(testKey);
+  } catch (e) {
+    localStorageWorks = false;
   }
+
+  const memoryStore = new Map();
+
   window.storage = {
     async get(key) {
-      const raw = localStorage.getItem(k(key));
-      if (raw === null) return null;
+      const raw = localStorageWorks ? localStorage.getItem(k(key)) : (memoryStore.has(k(key)) ? memoryStore.get(k(key)) : null);
+      if (raw === null || raw === undefined) return null;
       return { key, value: raw, shared: false };
     },
     async set(key, value) {
       try {
-        localStorage.setItem(k(key), value);
+        if (localStorageWorks) {
+          localStorage.setItem(k(key), value);
+        } else {
+          memoryStore.set(k(key), value);
+        }
         return { key, value, shared: false };
       } catch (e) {
-        return null;
+        // localStorage started failing mid-session (e.g. quota hit) — degrade
+        // to memory for the rest of this session instead of erroring forever.
+        localStorageWorks = false;
+        memoryStore.set(k(key), value);
+        return { key, value, shared: false };
       }
     },
     async delete(key) {
-      localStorage.removeItem(k(key));
+      if (localStorageWorks) localStorage.removeItem(k(key));
+      memoryStore.delete(k(key));
       return { key, deleted: true, shared: false };
     },
     async list(prefix) {
-      const keys = Object.keys(localStorage)
+      const source = localStorageWorks ? Object.keys(localStorage) : Array.from(memoryStore.keys());
+      const keys = source
         .filter((full) => full.startsWith(PREFIX + (prefix || "")))
         .map((full) => full.slice(PREFIX.length));
       return { keys, prefix, shared: false };
     },
   };
 })();
+
 
 </script>
 </head>
@@ -301,19 +328,53 @@ function App() {
   };
 
   // ---- subtask actions ----
+  const [pendingGoalDone, setPendingGoalDone] = useState(null); // { goalId, subId, title }
+  const goalDoneTimerRef = useRef(null);
+
   const toggleSubtask = (goalId, subId, forceDone) => {
     setData((d) => {
+      let wholeGoalJustCompleted = null;
       const goals = d.goals.map((g) => {
         if (g.id !== goalId) return g;
         const subtasks = g.subtasks.map((s) =>
           s.id === subId ? { ...s, done: forceDone !== undefined ? forceDone : !s.done } : s
         );
+        if (subtasks.length > 0 && subtasks.every((s) => s.done) && !g.subtasks.every((s) => s.done)) {
+          wholeGoalJustCompleted = g.title;
+        }
         return { ...g, subtasks };
       });
       const justCompleted = forceDone === true || (forceDone === undefined &&
         d.goals.find((g) => g.id === goalId)?.subtasks.find((s) => s.id === subId)?.done === false);
+
+      if (wholeGoalJustCompleted) {
+        setPendingGoalDone({ goalId, subId, title: wholeGoalJustCompleted });
+        if (goalDoneTimerRef.current) clearTimeout(goalDoneTimerRef.current);
+        goalDoneTimerRef.current = setTimeout(() => setPendingGoalDone(null), 8000);
+      }
+
       return { ...d, goals, streak: justCompleted ? bumpStreak(d.streak) : d.streak };
     });
+  };
+
+  const undoGoalDone = () => {
+    if (!pendingGoalDone) return;
+    toggleSubtask(pendingGoalDone.goalId, pendingGoalDone.subId, false);
+    if (goalDoneTimerRef.current) clearTimeout(goalDoneTimerRef.current);
+    setPendingGoalDone(null);
+  };
+
+  // Always-available (not time-limited) way back for a goal already archived as done —
+  // reopens it by un-marking its last step, since the toast above only lasts a few seconds.
+  const reopenGoal = (goalId) => {
+    setData((d) => ({
+      ...d,
+      goals: d.goals.map((g) => {
+        if (g.id !== goalId || g.subtasks.length === 0) return g;
+        const lastIdx = g.subtasks.length - 1;
+        return { ...g, subtasks: g.subtasks.map((s, i) => (i === lastIdx ? { ...s, done: false } : s)) };
+      }),
+    }));
   };
 
   const [pendingDelete, setPendingDelete] = useState(null); // { goal, index }
@@ -444,14 +505,24 @@ function App() {
                 </h2>
                 <div className="space-y-2">
                   {doneGoals.map((g) => (
-                    <div key={g.id} className="flex items-center justify-between px-4 py-3 rounded-2xl" style={{ background: "#EAF9F6" }}>
+                    <div key={g.id} className="flex items-center justify-between gap-2 px-4 py-3 rounded-2xl" style={{ background: "#EAF9F6" }}>
                       <div className="flex items-center gap-2 min-w-0">
                         <Check size={16} color="#2EC4B6" className="shrink-0" />
                         <span className="text-sm truncate line-through" style={{ color: "#4B7B75" }}>{g.title}</span>
                       </div>
-                      <button onClick={() => deleteGoal(g.id)} className="shrink-0 p-1.5 rounded-lg hover:bg-white/60 transition-colors" aria-label="削除">
-                        <Trash2 size={14} color="#4B7B75" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => reopenGoal(g.id)}
+                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/60 transition-colors"
+                          style={{ color: "#2E9187" }}
+                          aria-label="達成前の状態に戻す"
+                        >
+                          <RotateCcw size={13} /> 元に戻す
+                        </button>
+                        <button onClick={() => deleteGoal(g.id)} className="p-1.5 rounded-lg hover:bg-white/60 transition-colors" aria-label="削除">
+                          <Trash2 size={14} color="#4B7B75" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -501,9 +572,19 @@ function App() {
 
       {pendingDelete && (
         <UndoToast
-          title={pendingDelete.goal.title}
+          message={`「${pendingDelete.goal.title}」を削除しました`}
+          icon={Trash2}
           onUndo={undoDelete}
           onDismiss={() => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); setPendingDelete(null); }}
+        />
+      )}
+
+      {pendingGoalDone && !pendingDelete && (
+        <UndoToast
+          message={`「${pendingGoalDone.title}」を達成しました!`}
+          icon={Sparkles}
+          onUndo={undoGoalDone}
+          onDismiss={() => { if (goalDoneTimerRef.current) clearTimeout(goalDoneTimerRef.current); setPendingGoalDone(null); }}
         />
       )}
 
@@ -567,26 +648,21 @@ function GoalCard({ goal, onToggle, onStartTimer, onDelete }) {
         )}
       </div>
 
-      {/* path */}
+      {/* path — decorative progress indicator only, not tappable, to avoid mistaken completions */}
       {total > 0 && (
         <div className="relative">
-          <div className="flex items-center">
+          <div className="flex items-center" aria-hidden="true">
             {goal.subtasks.map((s, i) => (
               <div key={s.id} className="flex items-center flex-1 last:flex-none">
-                <div className="relative shrink-0">
-                  <button
-                    onClick={() => onToggle(s.id)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${i === nextIdx ? "pulse-ring" : ""}`}
-                    style={{
-                      background: s.done ? "#2EC4B6" : i === nextIdx ? "#FF7A59" : "#EDEAFB",
-                      border: i === nextIdx && !s.done ? "none" : undefined,
-                    }}
-                    aria-label={s.done ? "完了を取り消す" : "完了にする"}
-                  >
-                    {s.done ? <Check size={15} color="white" strokeWidth={3} /> : (
-                      <span className="text-xs font-bold font-mono" style={{ color: i === nextIdx ? "white" : "#9891C4" }}>{i + 1}</span>
-                    )}
-                  </button>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${i === nextIdx ? "pulse-ring" : ""}`}
+                  style={{
+                    background: s.done ? "#2EC4B6" : i === nextIdx ? "#FF7A59" : "#EDEAFB",
+                  }}
+                >
+                  {s.done ? <Check size={15} color="white" strokeWidth={3} /> : (
+                    <span className="text-xs font-bold font-mono" style={{ color: i === nextIdx ? "white" : "#9891C4" }}>{i + 1}</span>
+                  )}
                 </div>
                 {i < goal.subtasks.length - 1 && (
                   <div className="h-0.5 flex-1 mx-1 rounded" style={{ background: s.done ? "#2EC4B6" : "#EDEAFB" }} />
@@ -597,8 +673,16 @@ function GoalCard({ goal, onToggle, onStartTimer, onDelete }) {
 
           <div className="mt-3 space-y-1.5">
             {goal.subtasks.map((s, i) => (
-              <div key={s.id} className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl ${i === nextIdx ? "" : ""}`} style={{ background: i === nextIdx && !s.done ? "#FFF4F0" : "transparent" }}>
-                <span className={`text-sm ${s.done ? "line-through" : ""}`} style={{ color: s.done ? "#B7B0DE" : "#3A3660" }}>{s.text}</span>
+              <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: i === nextIdx && !s.done ? "#FFF4F0" : "transparent" }}>
+                <button
+                  onClick={() => onToggle(s.id)}
+                  aria-label={s.done ? "完了を取り消す" : "完了にする"}
+                  className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center border-2 transition-colors"
+                  style={{ borderColor: s.done ? "#2EC4B6" : "#D8D3F4", background: s.done ? "#2EC4B6" : "white" }}
+                >
+                  {s.done && <Check size={13} color="white" strokeWidth={3.5} />}
+                </button>
+                <span className={`text-sm flex-1 ${s.done ? "line-through" : ""}`} style={{ color: s.done ? "#B7B0DE" : "#3A3660" }}>{s.text}</span>
                 {!s.done && (
                   <button
                     onClick={() => setPickingFor(pickingFor === s.id ? null : s.id)}
@@ -939,7 +1023,8 @@ function Celebration({ text }) {
 }
 
 // ---------- Undo delete toast ----------
-function UndoToast({ title, onUndo, onDismiss }) {
+function UndoToast({ message, icon, onUndo, onDismiss }) {
+  const ToastIcon = icon || Trash2;
   return (
     <div
       className="fixed left-5 right-5 z-40 flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl animate-descend"
@@ -952,8 +1037,8 @@ function UndoToast({ title, onUndo, onDismiss }) {
       }}
     >
       <div className="flex items-center gap-2 min-w-0">
-        <Trash2 size={16} color="#B7B0DE" className="shrink-0" />
-        <span className="text-sm text-white truncate">「{title}」を削除しました</span>
+        <ToastIcon size={16} color="#B7B0DE" className="shrink-0" />
+        <span className="text-sm text-white truncate">{message}</span>
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <button
