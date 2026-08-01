@@ -1,1074 +1,817 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="little steps">
+<meta name="theme-color" content="#6C5CE7">
+<meta name="description" content="大きな目標を、脳がフリーズしない小さな一歩に分けるSMART目標アプリ">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <title>little steps — ADHDにやさしいSMART目標アプリ</title>
-<meta name="description" content="大きな目標を、脳がフリーズしない小さな一歩に分けるSMART目標アプリ" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
 
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#6C5CE7" />
-<link rel="apple-touch-icon" href="apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="little steps" />
-<link rel="icon" href="icon-192.png" />
+:root{
+  --bg:#F6F4FF; --surface:#FFFFFF; --surface2:#F0EEFB; --border:#E4E0FA;
+  --text:#211F3A; --text2:#3A3660; --muted:#726B9E; --faint:#9891C4; --faintest:#B7B0DE;
+  --violet:#6C5CE7; --violet-light:#EDEAFB;
+  --coral:#FF7A59; --coral-light:#FFF4F0;
+  --teal:#2EC4B6; --teal-light:#EAF9F6;
+  --amber:#FFD166; --amber-dark:#B4690E; --amber-light:#FFF1D6;
+  --pink:#FF6B9D; --blue:#3D9BE9; --red:#C4432B; --red-light:#FFE5E0;
+  --ink:#211F3A;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;-webkit-text-size-adjust:100%}
+button,input,textarea{font-family:inherit;font-size:16px}
+button{cursor:pointer;border:none;background:none;color:inherit}
+.disp{font-family:'Fredoka',sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+#app{min-height:100%;padding-bottom:calc(96px + var(--safe-b))}
 
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
-<script>
-// ---------- window.storage polyfill (localStorage-backed, with in-memory fallback) ----------
-// Mirrors the get/set/delete/list interface the app was originally built
-// against, so the app code itself needs no changes. "shared" is accepted
-// for interface compatibility but is not meaningful outside that original
-// environment — everything here is local to this browser only.
-//
-// Some browsing contexts (Private Browsing, certain in-app webviews, storage
-// quota set to 0) make localStorage.setItem throw on every call. Rather than
-// showing a permanent "save failed" error in that case, we detect it once
-// up front and fall back to an in-memory store so the app still works for
-// the current session — it just won't survive a reload in that situation.
-(function () {
-  const PREFIX = "little-steps:";
-  const k = (key) => PREFIX + key;
+/* ---------- header ---------- */
+#header{position:sticky;top:0;z-index:20;background:rgba(246,244,255,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);padding-top:var(--safe-t)}
+#header-row{max-width:720px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.h-left{display:flex;align-items:center;gap:8px;min-width:0}
+.logo{width:36px;height:36px;border-radius:14px;background:var(--violet);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.h-title{font-size:20px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--violet-light);display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.icon-btn:active{transform:scale(.92)}
+.streak-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--violet-light)}
+.streak-badge.on{background:var(--amber-light)}
+.streak-val{font-weight:700;font-size:14px;color:var(--faint)}
+.streak-badge.on .streak-val{color:var(--amber-dark)}
 
-  let localStorageWorks = true;
-  try {
-    const testKey = k("__test__");
-    localStorage.setItem(testKey, "1");
-    localStorage.removeItem(testKey);
-  } catch (e) {
-    localStorageWorks = false;
-  }
+main{max-width:720px;margin:0 auto;padding:24px 20px 0}
 
-  const memoryStore = new Map();
+/* ---------- empty state ---------- */
+.empty{padding:64px 8px 32px;text-align:center}
+.empty-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:24px;background:var(--violet-light);display:flex;align-items:center;justify-content:center}
+.empty h1{font-size:24px;font-weight:600;margin-bottom:8px}
+.empty p{font-size:14px;color:var(--muted);line-height:1.7;max-width:280px;margin:0 auto 28px}
+.btn-primary{font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;background:var(--violet);
+  padding:12px 24px;border-radius:16px;display:inline-flex;align-items:center;gap:8px;transition:transform .12s}
+.btn-primary:active{transform:scale(.96)}
 
-  window.storage = {
-    async get(key) {
-      const raw = localStorageWorks ? localStorage.getItem(k(key)) : (memoryStore.has(k(key)) ? memoryStore.get(k(key)) : null);
-      if (raw === null || raw === undefined) return null;
-      return { key, value: raw, shared: false };
-    },
-    async set(key, value) {
-      try {
-        if (localStorageWorks) {
-          localStorage.setItem(k(key), value);
-        } else {
-          memoryStore.set(k(key), value);
-        }
-        return { key, value, shared: false };
-      } catch (e) {
-        // localStorage started failing mid-session (e.g. quota hit) — degrade
-        // to memory for the rest of this session instead of erroring forever.
-        localStorageWorks = false;
-        memoryStore.set(k(key), value);
-        return { key, value, shared: false };
-      }
-    },
-    async delete(key) {
-      if (localStorageWorks) localStorage.removeItem(k(key));
-      memoryStore.delete(k(key));
-      return { key, deleted: true, shared: false };
-    },
-    async list(prefix) {
-      const source = localStorageWorks ? Object.keys(localStorage) : Array.from(memoryStore.keys());
-      const keys = source
-        .filter((full) => full.startsWith(PREFIX + (prefix || "")))
-        .map((full) => full.slice(PREFIX.length));
-      return { keys, prefix, shared: false };
-    },
-  };
-})();
+/* ---------- goal card ---------- */
+.goal-list{display:flex;flex-direction:column;gap:20px}
+.card{background:var(--surface);border-radius:24px;padding:20px;box-shadow:0 1px 3px rgba(76,63,140,.08),0 1px 2px rgba(76,63,140,.06)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
+.card-title{font-family:'Fredoka',sans-serif;font-size:18px;font-weight:600;line-height:1.35}
+.card-del{flex-shrink:0;padding:6px;border-radius:8px}
+.card-del:active{background:var(--bg)}
+.card-measurable{font-size:14px;color:var(--muted);margin-bottom:12px}
+.card-meta{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:12px;font-weight:500;color:var(--faint)}
+.pill{padding:2px 8px;border-radius:999px;background:var(--violet-light);color:var(--violet)}
+.pill.warn{background:var(--amber-light);color:var(--amber-dark)}
+.pill.late{background:var(--red-light);color:var(--red)}
+.sub-row{border-radius:12px;padding:8px 12px;margin-bottom:8px}
+.sub-row.active{background:var(--coral-light)}
+.sub-row-top{display:flex;align-items:center;gap:8px}
+.sub-text{flex:1;font-size:14px;color:var(--text2)}
+.sub-text.done{color:var(--faintest);text-decoration:line-through}
+.chk{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center}
+.start-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;background:var(--violet-light);color:var(--violet)}
+.start-btn.next{background:var(--coral);color:#fff}
+.undo-mini{flex-shrink:0;font-size:12px;font-weight:600;color:var(--faint);padding:4px 8px;border-radius:8px}
+.slide-wrap{margin-top:8px}
+.slide-track{position:relative;width:100%;height:50px;border-radius:999px;touch-action:none;overflow:hidden}
+.slide-fill{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width .25s ease}
+.slide-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:.02em;pointer-events:none}
+.slide-handle{position:absolute;top:3px;left:3px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(33,31,58,.28);transition:transform .25s ease}
+.slide-handle.dragging{transition:none}
+.card-quote{margin-top:16px;padding-top:12px;border-top:1px solid var(--surface2);font-size:12px;font-style:italic;color:var(--faintest)}
+.timer-pick{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 4px}
+.timer-pick span{font-size:12px;color:var(--faint)}
+.tp-btn{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;background:var(--violet-light);color:var(--violet)}
 
+/* ---------- archive ---------- */
+.archive-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--faint);margin:36px 0 12px}
+.archive-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--teal-light);border-radius:16px;padding:10px 16px;margin-bottom:8px}
+.archive-title{font-size:14px;color:#4B7B75;text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.archive-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#2E9187;padding:6px 8px;border-radius:8px}
 
-</script>
+/* ---------- FAB ---------- */
+#fab{position:fixed;right:24px;bottom:calc(24px + var(--safe-b));z-index:30;
+  font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;
+  background:linear-gradient(135deg,var(--coral),#FF9F6E);
+  padding:14px 20px;border-radius:999px;display:flex;align-items:center;gap:8px;
+  box-shadow:0 8px 20px rgba(255,122,89,.35);transition:transform .12s}
+#fab:active{transform:scale(.95)}
+
+/* ---------- modal shell (wizard / install guide) ---------- */
+.modal-overlay{position:fixed;left:0;right:0;top:0;z-index:40;display:flex;justify-content:center;
+  background:rgba(33,31,58,.5);padding-top:var(--safe-t);overflow-y:auto}
+.modal-overlay.timer{background:#211F3A;align-items:center;padding:0}
+.modal-card{width:100%;max-width:520px;background:#fff;border-radius:0 0 24px 24px;position:relative;
+  animation:descend .4s cubic-bezier(.22,1,.36,1)}
+@keyframes descend{from{transform:translateY(-32px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(min-width:640px){.modal-card{border-radius:24px;margin-top:40px}}
+.modal-close{position:absolute;top:16px;right:16px;z-index:5;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.modal-close:active{background:rgba(0,0,0,.05)}
+.modal-body{padding:28px 24px 16px;overflow-y:auto}
+.dots{display:flex;gap:6px;margin-bottom:16px;padding-right:32px}
+.dot{flex:1;height:6px;border-radius:999px;background:var(--violet-light);transition:background .2s}
+.guide{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:20px}
+.guide-icon{width:64px;height:64px;border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+.eyebrow-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--bg)}
+.step-label{font-size:12px;font-weight:600;color:var(--faint)}
+.prompt{font-family:'Fredoka',sans-serif;font-size:20px;font-weight:600;line-height:1.35}
+.hint{font-size:14px;color:var(--faint);margin-top:4px}
+.compact-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.compact-row .prompt{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field-input{width:100%;padding:12px 16px;border-radius:12px;border:2px solid var(--violet-light);outline:none;resize:none}
+.field-input:focus{border-color:var(--violet)}
+.sub-add-row{display:flex;gap:8px;margin-bottom:12px}
+.sub-chip{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:12px;background:var(--bg);margin-bottom:8px}
+.modal-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--surface2);
+  padding-bottom:calc(16px + var(--safe-b))}
+.footer-back{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--faint);padding:10px 16px;border-radius:12px}
+.footer-next{display:flex;align-items:center;gap:6px;font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;padding:10px 20px;border-radius:12px}
+.footer-next:disabled{opacity:.4}
+
+/* ---------- timer overlay ---------- */
+.timer-inner{width:100%;max-width:360px;text-align:center;padding:24px}
+.timer-goal{font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.timer-sub{font-size:14px;color:#C9C3EE;margin-bottom:32px}
+.timer-ring{position:relative;width:224px;height:224px;margin:0 auto 32px}
+.timer-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:700;color:#fff}
+.timer-actions{display:flex;align-items:center;justify-content:center;gap:12px}
+.tbtn{padding:12px 20px;border-radius:16px;font-size:14px;font-weight:600}
+.tbtn.cancel{background:#3A3660;color:#C9C3EE}
+.tbtn.pause{display:flex;align-items:center;gap:8px;background:var(--violet);color:#fff;font-family:'Fredoka',sans-serif}
+.timer-done-icon{width:80px;height:80px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.timer-done-title{font-family:'Fredoka',sans-serif;font-size:24px;font-weight:600;color:#fff;margin-bottom:8px}
+.timer-done-sub{font-size:14px;color:#C9C3EE;margin-bottom:32px}
+
+/* ---------- toasts ---------- */
+.toast{position:fixed;left:20px;right:20px;max-width:448px;margin:0 auto;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;background:#211F3A;color:#fff;
+  padding:14px 16px;border-radius:16px;box-shadow:0 8px 24px rgba(33,31,58,.3);animation:descend .3s ease-out}
+.toast.undo{bottom:calc(92px + var(--safe-b))}
+.toast-msg{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.toast-undo-btn{display:flex;align-items:center;gap:4px;font-family:'Fredoka',sans-serif;font-size:14px;font-weight:600;color:#fff;background:var(--coral);padding:6px 12px;border-radius:8px}
+.toast-x{padding:6px;border-radius:8px}
+.celebrate{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:50;
+  display:flex;align-items:center;gap:8px;background:#211F3A;color:#fff;padding:12px 20px;border-radius:16px;
+  box-shadow:0 8px 24px rgba(33,31,58,.3);animation:pop .35s ease-out;font-size:14px;white-space:nowrap}
+@keyframes pop{0%{transform:translateX(-50%) scale(.85);opacity:0}60%{transform:translateX(-50%) scale(1.05);opacity:1}100%{transform:translateX(-50%) scale(1)}}
+.save-error{position:fixed;bottom:24px;left:24px;z-index:40;background:var(--red-light);color:var(--red);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500}
+
+.guide-step{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:16px;background:var(--bg);margin-bottom:12px}
+.guide-step-n{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--violet);flex-shrink:0}
+.guide-step-text{flex:1;font-size:14px}
+.guide-done-btn{width:100%;margin-top:20px;font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;background:var(--violet);padding:12px;border-radius:16px}
+
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
 </head>
 <body>
-<div id="root"></div>
-
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef, useCallback } = React;
-
-// ---------- lightweight inline icon set (replaces lucide-react for a build-free static page) ----------
-const ICON_PATHS = {
-  plus: <path d="M12 5v14M5 12h14" />,
-  x: <path d="M18 6 6 18M6 6l12 12" />,
-  check: <path d="m5 13 4 4L19 7" />,
-  chevronLeft: <path d="m15 18-6-6 6-6" />,
-  chevronRight: <path d="m9 18 6-6-6-6" />,
-  arrowRight: <path d="M5 12h14M13 5l7 7-7 7" />,
-  pause: <><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></>,
-  rotateCcw: <path d="M4 4v6h6M20 13a8 8 0 1 1-2.6-6.9L20 10" />,
-  trash2: <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />,
-  target: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5.2" /><circle cx="12" cy="12" r="1.4" /></>,
-  ruler: <><rect x="3" y="8" width="18" height="8" rx="1.5" /><path d="M7 8v3M11 8v3M15 8v3" /></>,
-  listChecks: <path d="M4 6h1M8 6h12M4 12h1M8 12h12M4 18h1M8 18h12" />,
-  calendarClock: <><rect x="3" y="5" width="14" height="16" rx="2" /><path d="M3 10h14M7 3v4" /><circle cx="17" cy="17" r="5" /><path d="M17 15v2l1.4 1" /></>,
-  smartphone: <><rect x="7" y="2" width="10" height="20" rx="2" /><path d="M11 18h2" /></>,
-  moreVertical: <><circle cx="12" cy="5" r="1.3" /><circle cx="12" cy="12" r="1.3" /><circle cx="12" cy="19" r="1.3" /></>,
-};
-
-// Filled-only shapes (drawn with fill, no stroke needed for the shape itself)
-const FILLED_PATHS = {
-  play: <path d="M8 5v14l11-7z" />,
-  flame: <path d="M12 2.5c.6 3.2-2.6 4.3-2.6 7.6a2.6 2.6 0 0 0 5.2 0c0-.9-.4-1.4-.8-2.1.7 1.6-.3 2.6-1.2 2-.1-2.4 1.6-3.9-.6-7.5zM7.4 12.3A6.6 6.6 0 0 0 12 21a6.6 6.6 0 0 0 4.6-8.7 4.6 4.6 0 0 1-9.2 0z" />,
-  sparkles: <path d="M12 3l1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4zM19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7zM5 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z" />,
-  rocket: <path d="M12 2.2c2.6 2 4.3 5.4 4.3 9 0 1.7-.6 3.3-1.5 4.5l-2.8 3-2.8-3c-.9-1.2-1.5-2.8-1.5-4.5 0-3.6 1.7-7 4.3-9zM9.3 16.4 7 19.3l.7-3.4M14.7 16.4l2.3 2.9-.7-3.4M12 11a1.7 1.7 0 1 0 0-3.4A1.7 1.7 0 0 0 12 11z" />,
-  heart: <path d="M12 20.5s-7-4.2-9.3-8.4C.9 8.7 2.8 5.3 6.2 5.3c2 0 3.5 1.1 4 2 .5-.9 2-2 4-2 3.4 0 5.3 3.4 3.5 6.8C19 16.3 12 20.5 12 20.5z" />,
-  share2: <><circle cx="18" cy="5" r="2.4" /><circle cx="6" cy="12" r="2.4" /><circle cx="18" cy="19" r="2.4" /><path d="m8.1 10.7 7.8-4.4M8.1 13.3l7.8 4.4" strokeWidth="2" /></>,
-};
-
-function Icon({ name, size = 24, color = "currentColor", fill, strokeWidth = 2, className, style }) {
-  const isFilled = name in FILLED_PATHS;
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={isFilled ? (fill || color) : (fill && fill !== "none" ? fill : "none")}
-      stroke={isFilled ? "none" : color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      style={style}
-      aria-hidden="true"
-    >
-      {isFilled ? FILLED_PATHS[name] : ICON_PATHS[name]}
-    </svg>
-  );
-}
-
-const iconEl = (name) => (props) => <Icon name={name} {...props} />;
-
-const Plus = iconEl("plus");
-const X = iconEl("x");
-const Check = iconEl("check");
-const ChevronLeft = iconEl("chevronLeft");
-const ChevronRight = iconEl("chevronRight");
-const ArrowRight = iconEl("arrowRight");
-const Play = iconEl("play");
-const Pause = iconEl("pause");
-const Flame = iconEl("flame");
-const Sparkles = iconEl("sparkles");
-const RotateCcw = iconEl("rotateCcw");
-const Trash2 = iconEl("trash2");
-const Rocket = iconEl("rocket");
-const Target = iconEl("target");
-const Ruler = iconEl("ruler");
-const ListChecks = iconEl("listChecks");
-const Heart = iconEl("heart");
-const CalendarClock = iconEl("calendarClock");
-const Smartphone = iconEl("smartphone");
-const Share2 = iconEl("share2");
-const MoreVertical = iconEl("moreVertical");
-const Clock = iconEl("calendarClock");
-
-// ---------- helpers ----------
-const uid = () => Math.random().toString(36).slice(2, 10);
-const todayStr = () => new Date().toISOString().slice(0, 10);
-const daysUntil = (dateStr) => {
-  if (!dateStr) return null;
-  const d = new Date(dateStr + "T00:00:00");
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.ceil((d - now) / 86400000);
-};
-
-const EMPTY_DATA = { goals: [], streak: { count: 0, lastActiveDate: null } };
-
-// Tracks the *visible* viewport height (window.visualViewport), which shrinks
-// correctly when the on-screen keyboard opens — unlike 100vh/100dvh in some
-// mobile browsers. Used so full-screen overlays never get pushed off-screen.
-function useVisibleHeight() {
-  const [h, setH] = useState(() =>
-    typeof window !== "undefined" ? (window.visualViewport ? window.visualViewport.height : window.innerHeight) : 800
-  );
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => setH(vv.height);
-    update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
-  }, []);
-  return h;
-}
-
-const WIZARD_STEPS = [
-  { key: "specific", label: "Specific", eyebrow: "S", prompt: "何を達成したい?", hint: "できるだけ具体的に、一文で。", icon: Target, color: "#6C5CE7" },
-  { key: "measurable", label: "Measurable", eyebrow: "M", prompt: "終わったって、どうやってわかる?", hint: "数字や状態で書けると迷わない。", icon: Ruler, color: "#3D9BE9" },
-  { key: "subtasks", label: "Achievable", eyebrow: "A", prompt: "25分以内で終わる小さな一歩に分けよう", hint: "3〜6個くらい。小さいほど始めやすい。", icon: ListChecks, color: "#FF7A59" },
-  { key: "relevant", label: "Relevant", eyebrow: "R", prompt: "これが今の自分にとって大事な理由は?", hint: "あとで気力が切れたときに読み返す用。", icon: Heart, color: "#FF6B9D" },
-  { key: "timebound", label: "Time-bound", eyebrow: "T", prompt: "いつまでにやる?", hint: "締切がないと脳が優先度を見失う。", icon: CalendarClock, color: "#2EC4B6" },
-];
-
-const TIMER_PRESETS = [5, 15, 25, 30, 40];
-
-function App() {
-  const [data, setData] = useState(EMPTY_DATA);
-  const [loaded, setLoaded] = useState(false);
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [wizardStep, setWizardStep] = useState(0);
-  const [wizardData, setWizardData] = useState(blankWizard());
-  const [activeTimer, setActiveTimer] = useState(null); // { goalId, subId, seconds, running }
-  const [celebrate, setCelebrate] = useState(null);
-  const [saveError, setSaveError] = useState(false);
-  const [installGuideOpen, setInstallGuideOpen] = useState(false);
-  const [isStandalone] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      ((window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true)
-  );
-  const tickRef = useRef(null);
-
-  function blankWizard() {
-    return { specific: "", measurable: "", subtasks: [], relevant: "", timebound: "" };
-  }
-
-  // ---- load ----
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await window.storage.get("smart-goals-data", false);
-        if (res && res.value) {
-          const parsed = JSON.parse(res.value);
-          setData({ goals: parsed.goals || [], streak: parsed.streak || { count: 0, lastActiveDate: null } });
-        }
-      } catch (e) {
-        // no data yet, that's fine
-      } finally {
-        setLoaded(true);
-      }
-    })();
-  }, []);
-
-  const persist = useCallback(async (next, attempt = 0) => {
-    try {
-      const ok = await window.storage.set("smart-goals-data", JSON.stringify(next), false);
-      if (ok) {
-        setSaveError(false);
-      } else if (attempt < 2) {
-        setTimeout(() => persist(next, attempt + 1), 600);
-      } else {
-        setSaveError(true);
-      }
-    } catch (e) {
-      if (attempt < 2) {
-        setTimeout(() => persist(next, attempt + 1), 600);
-      } else {
-        setSaveError(true);
-      }
-    }
-  }, []);
-
-  const isEmptyData = data.goals.length === 0 && data.streak.count === 0;
-
-  useEffect(() => {
-    // avoid a pointless save (and pointless error) before the user has done anything
-    if (loaded && !isEmptyData) persist(data);
-  }, [data, loaded, isEmptyData, persist]);
-
-  // ---- timer tick ----
-  useEffect(() => {
-    if (activeTimer && activeTimer.running) {
-      tickRef.current = setInterval(() => {
-        setActiveTimer((t) => {
-          if (!t) return t;
-          if (t.seconds <= 1) {
-            clearInterval(tickRef.current);
-            return { ...t, seconds: 0, running: false, done: true };
-          }
-          return { ...t, seconds: t.seconds - 1 };
-        });
-      }, 1000);
-      return () => clearInterval(tickRef.current);
-    }
-    return () => clearInterval(tickRef.current);
-  }, [activeTimer && activeTimer.running]);
-
-  // ---- streak ----
-  const bumpStreak = (current) => {
-    const t = todayStr();
-    if (current.lastActiveDate === t) return current;
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const wasYesterday = current.lastActiveDate === yesterday.toISOString().slice(0, 10);
-    return { count: wasYesterday ? current.count + 1 : 1, lastActiveDate: t };
-  };
-
-  // ---- wizard ----
-  const openWizard = () => { setWizardData(blankWizard()); setWizardStep(0); setWizardOpen(true); };
-  const closeWizard = () => setWizardOpen(false);
-
-  const canAdvance = () => {
-    const key = WIZARD_STEPS[wizardStep].key;
-    if (key === "subtasks") return wizardData.subtasks.length > 0;
-    if (key === "relevant") return true; // optional, don't block momentum
-    return wizardData[key].trim().length > 0;
-  };
-
-  const finishWizard = () => {
-    const goal = {
-      id: uid(),
-      title: wizardData.specific.trim(),
-      measurable: wizardData.measurable.trim(),
-      relevant: wizardData.relevant.trim(),
-      deadline: wizardData.timebound,
-      createdAt: todayStr(),
-      subtasks: wizardData.subtasks.map((s) => ({ id: uid(), text: s, done: false })),
-    };
-    setData((d) => ({ ...d, goals: [goal, ...d.goals] }));
-    setWizardOpen(false);
-  };
-
-  // ---- subtask actions ----
-  const [pendingGoalDone, setPendingGoalDone] = useState(null); // { goalId, subId, title }
-  const goalDoneTimerRef = useRef(null);
-
-  const toggleSubtask = (goalId, subId, forceDone) => {
-    setData((d) => {
-      let wholeGoalJustCompleted = null;
-      const goals = d.goals.map((g) => {
-        if (g.id !== goalId) return g;
-        const subtasks = g.subtasks.map((s) =>
-          s.id === subId ? { ...s, done: forceDone !== undefined ? forceDone : !s.done } : s
-        );
-        if (subtasks.length > 0 && subtasks.every((s) => s.done) && !g.subtasks.every((s) => s.done)) {
-          wholeGoalJustCompleted = g.title;
-        }
-        return { ...g, subtasks };
-      });
-      const justCompleted = forceDone === true || (forceDone === undefined &&
-        d.goals.find((g) => g.id === goalId)?.subtasks.find((s) => s.id === subId)?.done === false);
-
-      if (wholeGoalJustCompleted) {
-        setPendingGoalDone({ goalId, subId, title: wholeGoalJustCompleted });
-        if (goalDoneTimerRef.current) clearTimeout(goalDoneTimerRef.current);
-        goalDoneTimerRef.current = setTimeout(() => setPendingGoalDone(null), 8000);
-      }
-
-      return { ...d, goals, streak: justCompleted ? bumpStreak(d.streak) : d.streak };
-    });
-  };
-
-  const undoGoalDone = () => {
-    if (!pendingGoalDone) return;
-    toggleSubtask(pendingGoalDone.goalId, pendingGoalDone.subId, false);
-    if (goalDoneTimerRef.current) clearTimeout(goalDoneTimerRef.current);
-    setPendingGoalDone(null);
-  };
-
-  // Always-available (not time-limited) way back for a goal already archived as done —
-  // reopens it by un-marking its last step, since the toast above only lasts a few seconds.
-  const reopenGoal = (goalId) => {
-    setData((d) => ({
-      ...d,
-      goals: d.goals.map((g) => {
-        if (g.id !== goalId || g.subtasks.length === 0) return g;
-        const lastIdx = g.subtasks.length - 1;
-        return { ...g, subtasks: g.subtasks.map((s, i) => (i === lastIdx ? { ...s, done: false } : s)) };
-      }),
-    }));
-  };
-
-  const [pendingDelete, setPendingDelete] = useState(null); // { goal, index }
-  const undoTimerRef = useRef(null);
-
-  const deleteGoal = (goalId) => {
-    setData((d) => {
-      const index = d.goals.findIndex((g) => g.id === goalId);
-      if (index === -1) return d;
-      const goal = d.goals[index];
-      setPendingDelete({ goal, index });
-      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = setTimeout(() => setPendingDelete(null), 6000);
-      return { ...d, goals: d.goals.filter((g) => g.id !== goalId) };
-    });
-  };
-
-  const undoDelete = () => {
-    if (!pendingDelete) return;
-    setData((d) => {
-      const goals = [...d.goals];
-      goals.splice(Math.min(pendingDelete.index, goals.length), 0, pendingDelete.goal);
-      return { ...d, goals };
-    });
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setPendingDelete(null);
-  };
-
-  // ---- timer actions ----
-  const startTimer = (goalId, subId, minutes) => {
-    setActiveTimer({ goalId, subId, seconds: minutes * 60, total: minutes * 60, running: true, done: false });
-  };
-  const pauseResume = () => setActiveTimer((t) => t && { ...t, running: !t.running });
-  const cancelTimer = () => setActiveTimer(null);
-  const finishTimerMarkDone = () => {
-    if (activeTimer) {
-      toggleSubtask(activeTimer.goalId, activeTimer.subId, true);
-      const goal = data.goals.find((g) => g.id === activeTimer.goalId);
-      setCelebrate(goal ? goal.title : "one step");
-      setTimeout(() => setCelebrate(null), 2200);
-    }
-    setActiveTimer(null);
-  };
-
-  const activeGoals = data.goals.filter((g) => g.subtasks.some((s) => !s.done) || g.subtasks.length === 0);
-  const doneGoals = data.goals.filter((g) => g.subtasks.length > 0 && g.subtasks.every((s) => s.done));
-
-  return (
-    <div className="min-h-screen w-full" style={{ background: "#F6F4FF", color: "#211F3A", fontFamily: "'Inter', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
-        .font-display { font-family: 'Fredoka', sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
-        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
-        @keyframes pulseRing { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,122,89,0.35); } 50% { box-shadow: 0 0 0 8px rgba(255,122,89,0); } }
-        @keyframes descend { 0% { transform: translateY(-32px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-        @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
-        @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-        .animate-pop { animation: pop 0.35s ease-out; }
-        .animate-descend { animation: descend 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
-        .animate-bob { animation: bob 2.4s ease-in-out infinite; }
-        .animate-fade-in { animation: fadeIn 0.25s ease-out; }
-        .pulse-ring { animation: pulseRing 1.8s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) {
-          .animate-pop, .pulse-ring, .animate-descend, .animate-bob, .animate-fade-in { animation: none !important; }
-        }
-        button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #6C5CE7; outline-offset: 2px; }
-        /* iOS Safari auto-zooms the whole page when a focused input's font-size is under 16px.
-           Forcing 16px here (independent of Tailwind's text-sm class) stops that jump. */
-        input, textarea, select { font-size: 16px !important; }
-        html { -webkit-text-size-adjust: 100%; }
-      `}</style>
-
-      {/* header */}
-      <header className="sticky top-0 z-20 backdrop-blur border-b" style={{ background: "rgba(246,244,255,0.85)", borderColor: "#E4E0FA", paddingTop: "env(safe-area-inset-top)" }}>
-        <div className="max-w-3xl mx-auto px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-2xl flex items-center justify-center" style={{ background: "#6C5CE7" }}>
-              <Target size={18} color="white" strokeWidth={2.5} />
-            </div>
-            <span className="font-display text-xl font-semibold tracking-tight">little steps</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {!isStandalone && (
-              <button
-                onClick={() => setInstallGuideOpen(true)}
-                aria-label="ホーム画面に追加"
-                className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
-                style={{ background: "#EDEAFB" }}
-              >
-                <Smartphone size={16} color="#6C5CE7" />
-              </button>
-            )}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: data.streak.count > 0 ? "#FFF1D6" : "#EDEAFB" }}>
-              <Flame size={16} color={data.streak.count > 0 ? "#FF9F1C" : "#9891C4"} fill={data.streak.count > 0 ? "#FFD166" : "none"} />
-              <span className="font-mono text-sm font-bold" style={{ color: data.streak.count > 0 ? "#B4690E" : "#9891C4" }}>
-                {data.streak.count}
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-5 pb-28 pt-6">
-        {!loaded ? (
-          <div className="py-24 text-center text-sm" style={{ color: "#9891C4" }}>読み込み中…</div>
-        ) : data.goals.length === 0 ? (
-          <EmptyState onStart={openWizard} />
-        ) : (
-          <>
-            <section className="space-y-5">
-              {activeGoals.map((g) => (
-                <GoalCard
-                  key={g.id}
-                  goal={g}
-                  onToggle={(subId) => toggleSubtask(g.id, subId)}
-                  onStartTimer={(subId, min) => startTimer(g.id, subId, min)}
-                  onDelete={() => deleteGoal(g.id)}
-                />
-              ))}
-            </section>
-
-            {doneGoals.length > 0 && (
-              <section className="mt-10">
-                <h2 className="font-display text-sm font-semibold mb-3 flex items-center gap-1.5" style={{ color: "#9891C4" }}>
-                  <Sparkles size={14} /> やり切った目標 ({doneGoals.length})
-                </h2>
-                <div className="space-y-2">
-                  {doneGoals.map((g) => (
-                    <div key={g.id} className="flex items-center justify-between gap-2 px-4 py-3 rounded-2xl" style={{ background: "#EAF9F6" }}>
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Check size={16} color="#2EC4B6" className="shrink-0" />
-                        <span className="text-sm truncate line-through" style={{ color: "#4B7B75" }}>{g.title}</span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => reopenGoal(g.id)}
-                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-white/60 transition-colors"
-                          style={{ color: "#2E9187" }}
-                          aria-label="達成前の状態に戻す"
-                        >
-                          <RotateCcw size={13} /> 元に戻す
-                        </button>
-                        <button onClick={() => deleteGoal(g.id)} className="p-1.5 rounded-lg hover:bg-white/60 transition-colors" aria-label="削除">
-                          <Trash2 size={14} color="#4B7B75" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-          </>
-        )}
-      </main>
-
-      {/* floating add button */}
-      <button
-        onClick={openWizard}
-        className="fixed right-6 z-30 rounded-full shadow-lg flex items-center gap-2 px-5 py-3.5 font-display font-semibold text-white transition-transform hover:scale-105 active:scale-95"
-        style={{ background: "linear-gradient(135deg, #FF7A59, #FF9F6E)", bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
-      >
-        <Plus size={20} strokeWidth={2.5} />
-        目標をつくる
-      </button>
-
-      {wizardOpen && (
-        <Wizard
-          step={wizardStep}
-          setStep={setWizardStep}
-          data={wizardData}
-          setData={setWizardData}
-          onClose={closeWizard}
-          onFinish={finishWizard}
-          canAdvance={canAdvance()}
-        />
-      )}
-
-      {activeTimer && (
-        <TimerOverlay
-          timer={activeTimer}
-          onPauseResume={pauseResume}
-          onCancel={cancelTimer}
-          onFinish={finishTimerMarkDone}
-          onKeepGoing={() => setActiveTimer(null)}
-          goalTitle={data.goals.find((g) => g.id === activeTimer.goalId)?.title}
-          subText={data.goals.find((g) => g.id === activeTimer.goalId)?.subtasks.find((s) => s.id === activeTimer.subId)?.text}
-        />
-      )}
-
-      {installGuideOpen && <InstallGuide onClose={() => setInstallGuideOpen(false)} />}
-
-      {celebrate && <Celebration text={celebrate} />}
-
-      {pendingDelete && (
-        <UndoToast
-          message={`「${pendingDelete.goal.title}」を削除しました`}
-          icon={Trash2}
-          onUndo={undoDelete}
-          onDismiss={() => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); setPendingDelete(null); }}
-        />
-      )}
-
-      {pendingGoalDone && !pendingDelete && (
-        <UndoToast
-          message={`「${pendingGoalDone.title}」を達成しました!`}
-          icon={Sparkles}
-          onUndo={undoGoalDone}
-          onDismiss={() => { if (goalDoneTimerRef.current) clearTimeout(goalDoneTimerRef.current); setPendingGoalDone(null); }}
-        />
-      )}
-
-      {saveError && (
-        <div className="fixed bottom-6 left-6 z-40 px-4 py-2.5 rounded-xl text-sm font-medium" style={{ background: "#FFE5E0", color: "#C4432B" }}>
-          保存に失敗しました。もう一度試してください。
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------- Empty state ----------
-function EmptyState({ onStart }) {
-  return (
-    <div className="pt-16 pb-8 text-center">
-      <div className="w-16 h-16 mx-auto mb-5 rounded-3xl flex items-center justify-center" style={{ background: "#EDEAFB" }}>
-        <Rocket size={28} color="#6C5CE7" />
-      </div>
-      <h1 className="font-display text-2xl font-semibold mb-2">まだ目標がありません</h1>
-      <p className="text-sm mb-7 max-w-xs mx-auto leading-relaxed" style={{ color: "#726B9E" }}>
-        大きな目標は脳がフリーズする。<br />ここでは一度に一つだけ聞くから、気楽にどうぞ。
-      </p>
-      <button
-        onClick={onStart}
-        className="font-display font-semibold text-white px-6 py-3 rounded-2xl inline-flex items-center gap-2 transition-transform hover:scale-105"
-        style={{ background: "#6C5CE7" }}
-      >
-        <Plus size={18} /> はじめる
-      </button>
-    </div>
-  );
-}
-
-// ---------- Goal card with step-path ----------
-function GoalCard({ goal, onToggle, onStartTimer, onDelete }) {
-  const [pickingFor, setPickingFor] = useState(null);
-  const doneCount = goal.subtasks.filter((s) => s.done).length;
-  const total = goal.subtasks.length;
-  const nextIdx = goal.subtasks.findIndex((s) => !s.done);
-  const remain = daysUntil(goal.deadline);
-
-  return (
-    <div className="rounded-3xl p-5" style={{ background: "white", boxShadow: "0 1px 3px rgba(76,63,140,0.08), 0 1px 2px rgba(76,63,140,0.06)" }}>
-      <div className="flex items-start justify-between gap-3 mb-1">
-        <h3 className="font-display text-lg font-semibold leading-snug">{goal.title}</h3>
-        <button onClick={onDelete} className="shrink-0 p-1.5 rounded-lg hover:bg-[#F6F4FF] transition-colors" aria-label="目標を削除">
-          <Trash2 size={15} color="#B7B0DE" />
-        </button>
-      </div>
-      {goal.measurable && (
-        <p className="text-sm mb-3" style={{ color: "#726B9E" }}>{goal.measurable}</p>
-      )}
-
-      <div className="flex items-center gap-3 mb-4 text-xs font-medium" style={{ color: "#9891C4" }}>
-        <span>{doneCount}/{total} ステップ完了</span>
-        {remain !== null && (
-          <span className="px-2 py-0.5 rounded-full" style={{ background: remain < 0 ? "#FFE5E0" : remain <= 3 ? "#FFF1D6" : "#EDEAFB", color: remain < 0 ? "#C4432B" : remain <= 3 ? "#B4690E" : "#6C5CE7" }}>
-            {remain < 0 ? `${Math.abs(remain)}日超過` : remain === 0 ? "今日が締切" : `あと${remain}日`}
-          </span>
-        )}
-      </div>
-
-      {/* path — decorative progress indicator only, not tappable, to avoid mistaken completions */}
-      {total > 0 && (
-        <div className="relative">
-          <div className="flex items-center" aria-hidden="true">
-            {goal.subtasks.map((s, i) => (
-              <div key={s.id} className="flex items-center flex-1 last:flex-none">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${i === nextIdx ? "pulse-ring" : ""}`}
-                  style={{
-                    background: s.done ? "#2EC4B6" : i === nextIdx ? "#FF7A59" : "#EDEAFB",
-                  }}
-                >
-                  {s.done ? <Check size={15} color="white" strokeWidth={3} /> : (
-                    <span className="text-xs font-bold font-mono" style={{ color: i === nextIdx ? "white" : "#9891C4" }}>{i + 1}</span>
-                  )}
-                </div>
-                {i < goal.subtasks.length - 1 && (
-                  <div className="h-0.5 flex-1 mx-1 rounded" style={{ background: s.done ? "#2EC4B6" : "#EDEAFB" }} />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-3 space-y-1.5">
-            {goal.subtasks.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: i === nextIdx && !s.done ? "#FFF4F0" : "transparent" }}>
-                <button
-                  onClick={() => onToggle(s.id)}
-                  aria-label={s.done ? "完了を取り消す" : "完了にする"}
-                  className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center border-2 transition-colors"
-                  style={{ borderColor: s.done ? "#2EC4B6" : "#D8D3F4", background: s.done ? "#2EC4B6" : "white" }}
-                >
-                  {s.done && <Check size={13} color="white" strokeWidth={3.5} />}
-                </button>
-                <span className={`text-sm flex-1 ${s.done ? "line-through" : ""}`} style={{ color: s.done ? "#B7B0DE" : "#3A3660" }}>{s.text}</span>
-                {!s.done && (
-                  <button
-                    onClick={() => setPickingFor(pickingFor === s.id ? null : s.id)}
-                    className="shrink-0 flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
-                    style={{ background: i === nextIdx ? "#FF7A59" : "#EDEAFB", color: i === nextIdx ? "white" : "#6C5CE7" }}
-                  >
-                    <Play size={11} fill="currentColor" /> 開始
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {pickingFor && (
-            <div className="mt-2 flex flex-wrap items-center gap-2 px-3">
-              <span className="text-xs w-full sm:w-auto" style={{ color: "#9891C4" }}>時間を選ぶ:</span>
-              {TIMER_PRESETS.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => { onStartTimer(pickingFor, m); setPickingFor(null); }}
-                  className="text-xs font-mono font-bold px-2.5 py-1.5 rounded-lg"
-                  style={{ background: "#EDEAFB", color: "#6C5CE7" }}
-                >
-                  {m}分
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {goal.relevant && (
-        <p className="mt-4 pt-3 text-xs italic border-t" style={{ color: "#B7B0DE", borderColor: "#F0EEFB" }}>
-          "{goal.relevant}"
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ---------- Wizard ----------
-function Wizard({ step, setStep, data, setData, onClose, onFinish, canAdvance }) {
-  const cfg = WIZARD_STEPS[step];
-  const [draftSub, setDraftSub] = useState("");
-  const isLast = step === WIZARD_STEPS.length - 1;
-
-  const next = () => (isLast ? onFinish() : setStep(step + 1));
-  const back = () => (step === 0 ? onClose() : setStep(step - 1));
-
-  const addSub = () => {
-    const t = draftSub.trim();
-    if (!t) return;
-    setData((d) => ({ ...d, subtasks: [...d.subtasks, t] }));
-    setDraftSub("");
-  };
-  const removeSub = (i) => setData((d) => ({ ...d, subtasks: d.subtasks.filter((_, idx) => idx !== i) }));
-  const vh = useVisibleHeight();
-  const Icon = cfg.icon;
-
-  return (
-    <div
-      className="fixed left-0 right-0 top-0 z-40 flex items-start justify-center overflow-y-auto"
-      style={{ height: vh, background: "rgba(33,31,58,0.5)", paddingTop: "env(safe-area-inset-top)" }}
-    >
-      <div
-        key={cfg.key}
-        className="w-full sm:max-w-lg bg-white rounded-b-3xl sm:rounded-3xl sm:mt-10 animate-descend flex flex-col relative"
-        style={{ maxHeight: Math.round(vh * 0.94), boxShadow: "0 20px 50px rgba(33,31,58,0.35)" }}
-      >
-        <button
-          onClick={onClose}
-          aria-label="閉じる"
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-black/5"
-        >
-          <X size={17} color="#B7B0DE" />
-        </button>
-
-        <div className="overflow-y-auto px-6 pt-7" style={{ paddingBottom: "1.5rem" }}>
-          {/* progress dots */}
-          <div className="flex items-center gap-1.5 mb-6 pr-8">
-            {WIZARD_STEPS.map((s, i) => (
-              <div key={s.key} className="flex-1 h-1.5 rounded-full transition-colors" style={{ background: i <= step ? s.color : "#EDEAFB" }} />
-            ))}
-          </div>
-
-          {/* guide character */}
-          <div className="flex flex-col items-center text-center mb-5 animate-fade-in">
-            <div
-              className="w-16 h-16 rounded-3xl flex items-center justify-center mb-3 animate-bob"
-              style={{ background: cfg.color }}
-            >
-              <Icon size={28} color="white" strokeWidth={2.2} />
-            </div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: "#F6F4FF", color: cfg.color }}>{cfg.eyebrow}</span>
-              <span className="text-xs font-semibold" style={{ color: "#9891C4" }}>{cfg.label} · {step + 1}/{WIZARD_STEPS.length}</span>
-            </div>
-            <h2 className="font-display text-xl font-semibold leading-snug">{cfg.prompt}</h2>
-            <p className="text-sm mt-1" style={{ color: "#9891C4" }}>{cfg.hint}</p>
-          </div>
-
-          {cfg.key === "subtasks" ? (
-            <div>
-              <div className="flex gap-2 mb-3">
-                <input
-                  autoFocus
-                  value={draftSub}
-                  onChange={(e) => setDraftSub(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addSub()}
-                  placeholder="例: 参考資料を1つ開く"
-                  className="flex-1 px-4 py-3 rounded-xl border-2 outline-none"
-                  style={{ borderColor: "#EDEAFB" }}
-                />
-                <button onClick={addSub} className="px-4 rounded-xl font-semibold text-sm shrink-0" style={{ background: cfg.color, color: "white" }}>追加</button>
-              </div>
-              <div className="space-y-2">
-                {data.subtasks.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#F6F4FF" }}>
-                    <span className="text-sm flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold" style={{ color: "#9891C4" }}>{i + 1}</span>
-                      {s}
-                    </span>
-                    <button onClick={() => removeSub(i)} aria-label="削除" className="p-1"><X size={15} color="#B7B0DE" /></button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : cfg.key === "timebound" ? (
-            <input
-              type="date"
-              autoFocus
-              value={data.timebound}
-              onChange={(e) => setData((d) => ({ ...d, timebound: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border-2 outline-none"
-              style={{ borderColor: "#EDEAFB" }}
-            />
-          ) : (
-            <textarea
-              autoFocus
-              value={data[cfg.key]}
-              onChange={(e) => setData((d) => ({ ...d, [cfg.key]: e.target.value }))}
-              placeholder="ここに入力…"
-              rows={cfg.key === "relevant" ? 3 : 2}
-              className="w-full px-4 py-3 rounded-xl border-2 outline-none resize-none"
-              style={{ borderColor: "#EDEAFB" }}
-            />
-          )}
-        </div>
-
-        <div
-          className="flex items-center justify-between px-6 py-4 border-t shrink-0"
-          style={{ borderColor: "#F0EEFB", paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
-        >
-          <button onClick={back} className="flex items-center gap-1 text-sm font-semibold px-4 py-2.5 rounded-xl" style={{ color: "#9891C4" }}>
-            <ChevronLeft size={16} /> {step === 0 ? "閉じる" : "戻る"}
-          </button>
-          <button
-            onClick={next}
-            disabled={!canAdvance}
-            className="flex items-center gap-1.5 font-display font-semibold px-5 py-2.5 rounded-xl text-white transition-opacity disabled:opacity-40"
-            style={{ background: isLast ? "#2EC4B6" : cfg.color }}
-          >
-            {isLast ? "目標をつくる" : "次へ"} <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------- Timer overlay ----------
-function TimerOverlay({ timer, onPauseResume, onCancel, onFinish, onKeepGoing, goalTitle, subText }) {
-  const mins = String(Math.floor(timer.seconds / 60)).padStart(2, "0");
-  const secs = String(timer.seconds % 60).padStart(2, "0");
-  const pct = 1 - timer.seconds / timer.total;
-  const vh = useVisibleHeight();
-
-  return (
-    <div
-      className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center px-6 overflow-y-auto"
-      style={{ height: vh, background: "#211F3A", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
-      <div className="w-full max-w-sm text-center">
-        {!timer.done ? (
-          <>
-            <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#9891C4" }}>{goalTitle}</p>
-            <p className="text-sm mb-8" style={{ color: "#C9C3EE" }}>{subText}</p>
-
-            <div className="relative w-56 h-56 mx-auto mb-8">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#3A3660" strokeWidth="6" />
-                <circle
-                  cx="50" cy="50" r="45" fill="none" stroke="#FF7A59" strokeWidth="6"
-                  strokeDasharray={2 * Math.PI * 45}
-                  strokeDashoffset={2 * Math.PI * 45 * (1 - pct)}
-                  strokeLinecap="round"
-                  style={{ transition: "stroke-dashoffset 1s linear" }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-mono text-5xl font-bold text-white">{mins}:{secs}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-3">
-              <button onClick={onCancel} className="px-5 py-3 rounded-2xl text-sm font-semibold" style={{ background: "#3A3660", color: "#C9C3EE" }}>
-                やめる
-              </button>
-              <button onClick={onPauseResume} className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-display font-semibold text-white" style={{ background: "#6C5CE7" }}>
-                {timer.running ? <><Pause size={16} /> 一時停止</> : <><Play size={16} /> 再開</>}
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="animate-pop">
-            <div className="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center" style={{ background: "#2EC4B6" }}>
-              <Check size={36} color="white" strokeWidth={3} />
-            </div>
-            <h2 className="font-display text-2xl font-semibold text-white mb-2">時間終了!</h2>
-            <p className="text-sm mb-8" style={{ color: "#C9C3EE" }}>このステップ、完了にする?</p>
-            <div className="flex items-center justify-center gap-3">
-              <button onClick={onKeepGoing} className="flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-semibold" style={{ background: "#3A3660", color: "#C9C3EE" }}>
-                <RotateCcw size={15} /> まだ途中
-              </button>
-              <button onClick={onFinish} className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-display font-semibold text-white" style={{ background: "#2EC4B6" }}>
-                <Check size={16} /> 完了にする
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ---------- Add to Home Screen guide ----------
-function detectPlatform() {
-  if (typeof navigator === "undefined") return "other";
-  const ua = navigator.userAgent || "";
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
-  if (isIOS) return "ios";
-  if (/Android/.test(ua)) return "android";
-  return "other";
-}
-
-function InstallGuide({ onClose }) {
-  const vh = useVisibleHeight();
-  const platform = detectPlatform();
-
-  const steps = {
-    ios: [
-      { icon: Share2, text: "画面下(または上)の共有ボタンをタップ" },
-      { icon: Plus, text: "「ホーム画面に追加」を選ぶ" },
-      { icon: Check, text: "右上の「追加」をタップして完了" },
-    ],
-    android: [
-      { icon: MoreVertical, text: "右上の「⋮」メニューを開く" },
-      { icon: Plus, text: "「ホーム画面に追加」または「アプリをインストール」を選ぶ" },
-      { icon: Check, text: "「追加」をタップして完了" },
-    ],
-    other: [
-      { icon: Share2, text: "ブラウザのメニューを開く" },
-      { icon: Plus, text: "「ホーム画面に追加」に近い項目を探す" },
-      { icon: Check, text: "案内に沿って追加すれば完了" },
-    ],
-  }[platform];
-
-  return (
-    <div
-      className="fixed left-0 right-0 top-0 z-40 flex items-start justify-center overflow-y-auto"
-      style={{ height: vh, background: "rgba(33,31,58,0.5)", paddingTop: "env(safe-area-inset-top)" }}
-    >
-      <div
-        className="w-full sm:max-w-lg bg-white rounded-b-3xl sm:rounded-3xl sm:mt-10 animate-descend relative"
-        style={{ maxHeight: Math.round(vh * 0.94), boxShadow: "0 20px 50px rgba(33,31,58,0.35)" }}
-      >
-        <button
-          onClick={onClose}
-          aria-label="閉じる"
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-black/5"
-        >
-          <X size={17} color="#B7B0DE" />
-        </button>
-
-        <div className="px-6 pt-8 pb-7">
-          <div className="flex flex-col items-center text-center mb-6">
-            <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-3 animate-bob" style={{ background: "#6C5CE7" }}>
-              <Smartphone size={28} color="white" strokeWidth={2.2} />
-            </div>
-            <h2 className="font-display text-xl font-semibold leading-snug">ホーム画面に追加する</h2>
-            <p className="text-sm mt-1 max-w-xs" style={{ color: "#9891C4" }}>
-              アイコンをタップするだけで開けるようになる。ブラウザを探す手間が、開始のハードルを一つ減らす。
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {steps.map((s, i) => {
-              const StepIcon = s.icon;
-              return (
-                <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: "#F6F4FF" }}>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-mono text-xs font-bold" style={{ background: "white", color: "#6C5CE7" }}>
-                    {i + 1}
-                  </div>
-                  <span className="text-sm flex-1">{s.text}</span>
-                  <StepIcon size={16} color="#9891C4" className="shrink-0" />
-                </div>
-              );
-            })}
-          </div>
-
-          {platform === "other" && (
-            <p className="text-xs text-center mt-4" style={{ color: "#B7B0DE" }}>
-              iPhoneのSafari、AndroidのChromeで開くと手順が自動で表示されます。
-            </p>
-          )}
-
-          <button
-            onClick={onClose}
-            className="w-full mt-6 font-display font-semibold py-3 rounded-2xl text-white"
-            style={{ background: "#6C5CE7" }}
-          >
-            わかった
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------- Celebration toast ----------
-function Celebration({ text }) {
-  return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl flex items-center gap-2 animate-pop" style={{ background: "#211F3A", boxShadow: "0 8px 24px rgba(33,31,58,0.3)" }}>
-      <Sparkles size={16} color="#FFD166" />
-      <span className="text-sm font-medium text-white">「{text}」が一歩前進!</span>
-    </div>
-  );
-}
-
-// ---------- Undo delete toast ----------
-function UndoToast({ message, icon, onUndo, onDismiss }) {
-  const ToastIcon = icon || Trash2;
-  return (
-    <div
-      className="fixed left-5 right-5 z-40 flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl animate-descend"
-      style={{
-        bottom: "calc(5.75rem + env(safe-area-inset-bottom))",
-        background: "#211F3A",
-        boxShadow: "0 8px 24px rgba(33,31,58,0.3)",
-        maxWidth: "28rem",
-        margin: "0 auto",
-      }}
-    >
-      <div className="flex items-center gap-2 min-w-0">
-        <ToastIcon size={16} color="#B7B0DE" className="shrink-0" />
-        <span className="text-sm text-white truncate">{message}</span>
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          onClick={onUndo}
-          className="flex items-center gap-1 text-sm font-display font-semibold px-3 py-1.5 rounded-lg transition-colors"
-          style={{ background: "#FF7A59", color: "white" }}
-        >
-          <RotateCcw size={14} /> 元に戻す
-        </button>
-        <button onClick={onDismiss} aria-label="閉じる" className="p-1.5 rounded-lg hover:bg-white/10">
-          <X size={15} color="#726B9E" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-
-
-</script>
+<div id="app"></div>
 
 <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {
-        // offline support is a nice-to-have; ignore if registration fails
-      });
+'use strict';
+
+/* ============ constants ============ */
+var TIMER_PRESETS = [5,15,25,30,40];
+var WIZARD_STEPS = [
+  {key:'specific',   eyebrow:'S', label:'Specific',    prompt:'何を達成したい?',                       hint:'できるだけ具体的に、一文で。',           color:'#6C5CE7', icon:'target'},
+  {key:'measurable', eyebrow:'M', label:'Measurable',  prompt:'終わったって、どうやってわかる?',       hint:'数字や状態で書けると迷わない。',         color:'#3D9BE9', icon:'ruler'},
+  {key:'subtasks',   eyebrow:'A', label:'Achievable',  prompt:'25分以内で終わる小さな一歩に分けよう',  hint:'3〜6個くらい。小さいほど始めやすい。',   color:'#FF7A59', icon:'listChecks'},
+  {key:'relevant',   eyebrow:'R', label:'Relevant',    prompt:'これが今の自分にとって大事な理由は?',   hint:'あとで気力が切れたときに読み返す用。',   color:'#FF6B9D', icon:'heart'},
+  {key:'timebound',  eyebrow:'T', label:'Time-bound',  prompt:'いつまでにやる?',                       hint:'締切がないと脳が優先度を見失う。',       color:'#2EC4B6', icon:'calendarClock'}
+];
+var STORAGE_KEY = 'little-steps-data';
+
+/* ============ tiny icon set ============ */
+var ICONS = {
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  check:'<path d="m5 13 4 4L19 7"/>',
+  chevronLeft:'<path d="m15 18-6-6 6-6"/>',
+  chevronRight:'<path d="m9 18 6-6-6-6"/>',
+  arrowRight:'<path d="M5 12h14M13 5l7 7-7 7"/>',
+  play:'<path d="M8 5v14l11-7z"/>',
+  pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  flame:'<path d="M12 2.5c.6 3.2-2.6 4.3-2.6 7.6a2.6 2.6 0 0 0 5.2 0c0-.9-.4-1.4-.8-2.1.7 1.6-.3 2.6-1.2 2-.1-2.4 1.6-3.9-.6-7.5zM7.4 12.3A6.6 6.6 0 0 0 12 21a6.6 6.6 0 0 0 4.6-8.7 4.6 4.6 0 0 1-9.2 0z"/>',
+  sparkles:'<path d="M12 3l1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4zM19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7zM5 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/>',
+  rotateCcw:'<path d="M4 4v6h6M20 13a8 8 0 1 1-2.6-6.9L20 10"/>',
+  trash2:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
+  rocket:'<path d="M12 2.2c2.6 2 4.3 5.4 4.3 9 0 1.7-.6 3.3-1.5 4.5l-2.8 3-2.8-3c-.9-1.2-1.5-2.8-1.5-4.5 0-3.6 1.7-7 4.3-9zM9.3 16.4 7 19.3l.7-3.4M14.7 16.4l2.3 2.9-.7-3.4M12 11a1.7 1.7 0 1 0 0-3.4A1.7 1.7 0 0 0 12 11z"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.4"/>',
+  ruler:'<rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v3M15 8v3"/>',
+  listChecks:'<path d="M4 6h1M8 6h12M4 12h1M8 12h12M4 18h1M8 18h12"/>',
+  heart:'<path d="M12 20.5s-7-4.2-9.3-8.4C.5 8.7 2.8 5.3 6.2 5.3c2 0 3.5 1.1 4 2 .5-.9 2-2 4-2 3.4 0 5.3 3.4 3.5 6.8C19 16.65 12 20.5 12 20.5z"/>',
+  calendarClock:'<rect x="3" y="5" width="14" height="16" rx="2"/><path d="M3 10h14M7 3v4"/><circle cx="17" cy="17" r="5"/><path d="M17 15v2l1.4 1"/>',
+  smartphone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  share2:'<circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="m8.1 10.7 7.8-4.4M8.1 13.3l7.8 4.4"/>',
+  moreVertical:'<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>'
+};
+var FILLED = {play:1, flame:1, sparkles:1, rocket:1, heart:1};
+function icon(name, opts){
+  opts = opts || {};
+  var size = opts.size || 24, color = opts.color || 'currentColor', sw = opts.strokeWidth || 2;
+  var filled = FILLED[name];
+  var extra = opts.extra || '';
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="'+(filled?color:'none')+'" stroke="'+(filled?'none':color)+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round" '+extra+'>'+(ICONS[name]||'')+'</svg>';
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* ============ state ============ */
+var state = loadState();
+var ui = {
+  wizardOpen:false, wizardStep:0, wizardData:blankWizard(),
+  activeTimer:null,          // {goalId, subId, seconds, total, running, done}
+  installGuideOpen:false,
+  pendingDelete:null,        // {goal, index, timer}
+  pendingGoalDone:null,      // {goalId, subId, title, timer}
+  celebrate:null,
+  pickingFor:null,           // subtask id currently choosing a timer duration
+  saveError:false
+};
+var dragState = null;
+var timerInterval = null;
+
+function blankWizard(){ return {specific:'',measurable:'',subtasks:[],relevant:'',timebound:''}; }
+
+function loadState(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ var parsed = JSON.parse(raw); return {goals:parsed.goals||[], streak:parsed.streak||{count:0,lastActiveDate:null}}; }
+  }catch(e){}
+  return {goals:[], streak:{count:0,lastActiveDate:null}};
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); ui.saveError=false; }
+  catch(e){ ui.saveError=true; }
+}
+
+/* ============ helpers ============ */
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  var d = new Date(dateStr+'T00:00:00'), now = new Date(); now.setHours(0,0,0,0);
+  return Math.ceil((d-now)/86400000);
+}
+function bumpStreak(streak){
+  var t = todayStr();
+  if(streak.lastActiveDate===t) return streak;
+  var y = new Date(); y.setDate(y.getDate()-1);
+  var wasYesterday = streak.lastActiveDate===y.toISOString().slice(0,10);
+  return {count: wasYesterday?streak.count+1:1, lastActiveDate:t};
+}
+function findGoal(id){ return state.goals.find(function(g){return g.id===id;}); }
+
+/* ============ actions ============ */
+function openWizard(){ ui.wizardOpen=true; ui.wizardStep=0; ui.wizardData=blankWizard(); render(); }
+function closeWizard(){ ui.wizardOpen=false; render(); }
+function wizardKey(){ return WIZARD_STEPS[ui.wizardStep].key; }
+function readWizardInputIntoState(){
+  var key = wizardKey();
+  if(key==='subtasks' || key==='timebound') return;
+  var el = document.getElementById('wizard-field');
+  if(el) ui.wizardData[key] = el.value;
+}
+function wizardBack(){
+  readWizardInputIntoState();
+  if(ui.wizardStep===0){ closeWizard(); return; }
+  ui.wizardStep--; render();
+}
+function wizardNext(){
+  readWizardInputIntoState();
+  var key = wizardKey();
+  if(key==='subtasks'){ if(ui.wizardData.subtasks.length===0) return; }
+  else if(key!=='relevant' && !ui.wizardData[key].trim()) return;
+
+  if(ui.wizardStep===WIZARD_STEPS.length-1){ finishWizard(); return; }
+  ui.wizardStep++; render();
+}
+function finishWizard(){
+  var goal = {
+    id: uid(),
+    title: ui.wizardData.specific.trim(),
+    measurable: ui.wizardData.measurable.trim(),
+    relevant: ui.wizardData.relevant.trim(),
+    deadline: ui.wizardData.timebound,
+    createdAt: todayStr(),
+    subtasks: ui.wizardData.subtasks.map(function(t){ return {id:uid(), text:t, done:false}; })
+  };
+  state.goals.unshift(goal);
+  saveState();
+  ui.wizardOpen=false;
+  render();
+}
+function addSubtaskDraft(){
+  var el = document.getElementById('sub-draft');
+  if(!el) return;
+  var v = el.value.trim();
+  if(!v) return;
+  ui.wizardData.subtasks.push(v);
+  el.value='';
+  render();
+  var again = document.getElementById('sub-draft');
+  if(again) again.focus();
+}
+function removeSubtaskDraft(i){ ui.wizardData.subtasks.splice(i,1); render(); }
+
+function toggleSubtask(goalId, subId, forceDone){
+  var goal = findGoal(goalId);
+  if(!goal) return;
+  var sub = goal.subtasks.find(function(s){return s.id===subId;});
+  if(!sub) return;
+  var wasAllDoneBefore = goal.subtasks.every(function(s){return s.done;});
+  var newDone = forceDone!==undefined ? forceDone : !sub.done;
+  var justCompleted = newDone===true && sub.done===false;
+  sub.done = newDone;
+  var isAllDoneNow = goal.subtasks.length>0 && goal.subtasks.every(function(s){return s.done;});
+  if(justCompleted){ state.streak = bumpStreak(state.streak); }
+  if(isAllDoneNow && !wasAllDoneBefore){
+    if(ui.pendingGoalDone && ui.pendingGoalDone.timer) clearTimeout(ui.pendingGoalDone.timer);
+    var pgd = {goalId:goalId, subId:subId, title:goal.title};
+    pgd.timer = setTimeout(function(){ ui.pendingGoalDone=null; render(); }, 8000);
+    ui.pendingGoalDone = pgd;
+  }
+  saveState();
+  render();
+}
+function undoGoalDone(){
+  if(!ui.pendingGoalDone) return;
+  var p = ui.pendingGoalDone;
+  if(p.timer) clearTimeout(p.timer);
+  ui.pendingGoalDone = null;
+  toggleSubtask(p.goalId, p.subId, false);
+}
+function dismissGoalDoneToast(){
+  if(ui.pendingGoalDone && ui.pendingGoalDone.timer) clearTimeout(ui.pendingGoalDone.timer);
+  ui.pendingGoalDone=null; render();
+}
+function reopenGoal(goalId){
+  var goal = findGoal(goalId);
+  if(!goal || goal.subtasks.length===0) return;
+  goal.subtasks[goal.subtasks.length-1].done=false;
+  saveState(); render();
+}
+function deleteGoal(goalId){
+  var idx = state.goals.findIndex(function(g){return g.id===goalId;});
+  if(idx===-1) return;
+  var goal = state.goals[idx];
+  state.goals.splice(idx,1);
+  if(ui.pendingDelete && ui.pendingDelete.timer) clearTimeout(ui.pendingDelete.timer);
+  var pd = {goal:goal, index:idx};
+  pd.timer = setTimeout(function(){ ui.pendingDelete=null; render(); }, 6000);
+  ui.pendingDelete = pd;
+  saveState(); render();
+}
+function undoDelete(){
+  if(!ui.pendingDelete) return;
+  var p = ui.pendingDelete;
+  if(p.timer) clearTimeout(p.timer);
+  state.goals.splice(Math.min(p.index, state.goals.length), 0, p.goal);
+  ui.pendingDelete=null;
+  saveState(); render();
+}
+function dismissDeleteToast(){
+  if(ui.pendingDelete && ui.pendingDelete.timer) clearTimeout(ui.pendingDelete.timer);
+  ui.pendingDelete=null; render();
+}
+
+function pickTimerFor(subId){ ui.pickingFor = ui.pickingFor===subId?null:subId; render(); }
+function startTimer(goalId, subId, minutes){
+  ui.pickingFor=null;
+  ui.activeTimer = {goalId:goalId, subId:subId, seconds:minutes*60, total:minutes*60, running:true, done:false};
+  render();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(tickTimer, 1000);
+}
+function tickTimer(){
+  if(!ui.activeTimer || !ui.activeTimer.running) return;
+  ui.activeTimer.seconds--;
+  if(ui.activeTimer.seconds<=0){
+    ui.activeTimer.seconds=0; ui.activeTimer.running=false; ui.activeTimer.done=true;
+    clearInterval(timerInterval);
+    render();
+    return;
+  }
+  updateTimerDom();
+}
+function pauseResumeTimer(){
+  if(!ui.activeTimer) return;
+  ui.activeTimer.running = !ui.activeTimer.running;
+  render();
+}
+function cancelTimer(){ ui.activeTimer=null; clearInterval(timerInterval); render(); }
+function finishTimerMarkDone(){
+  if(ui.activeTimer){
+    var goal = findGoal(ui.activeTimer.goalId);
+    toggleSubtask(ui.activeTimer.goalId, ui.activeTimer.subId, true);
+    ui.celebrate = goal ? goal.title : '';
+    setTimeout(function(){ ui.celebrate=null; render(); }, 2200);
+  }
+  ui.activeTimer=null;
+  render();
+}
+function keepGoingTimer(){ ui.activeTimer=null; render(); }
+
+function openInstallGuide(){ ui.installGuideOpen=true; render(); }
+function closeInstallGuide(){ ui.installGuideOpen=false; render(); }
+
+/* ============ platform / standalone detection ============ */
+function isStandalone(){
+  try{ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; }
+  catch(e){ return false; }
+}
+function detectPlatform(){
+  var ua = navigator.userAgent || '';
+  if(/iPad|iPhone|iPod/.test(ua) || (ua.indexOf('Macintosh')>-1 && navigator.maxTouchPoints>1)) return 'ios';
+  if(/Android/.test(ua)) return 'android';
+  return 'other';
+}
+
+/* ============ render: pieces ============ */
+function renderHeader(){
+  var streak = state.streak.count>0;
+  var installBtn = isStandalone() ? '' :
+    '<button class="icon-btn" data-action="install-guide" aria-label="ホーム画面に追加">'+icon('smartphone',{size:16,color:'#6C5CE7'})+'</button>';
+  return ''+
+  '<header id="header"><div id="header-row">'+
+    '<div class="h-left">'+
+      '<div class="logo">'+icon('target',{size:18,color:'#fff',strokeWidth:2.5})+'</div>'+
+      '<span class="disp h-title">little steps</span>'+
+    '</div>'+
+    '<div class="h-right">'+
+      installBtn+
+      '<div class="streak-badge'+(streak?' on':'')+'">'+icon('flame',{size:16,color: streak?'#FF9F1C':'#9891C4'})+'<span class="mono streak-val">'+state.streak.count+'</span></div>'+
+    '</div>'+
+  '</div></header>';
+}
+
+function renderSlide(goalId, subId, accent){
+  return '<div class="slide-wrap"><div class="slide-track" data-slide-track data-goal="'+goalId+'" data-sub="'+subId+'" style="background:'+accent+'1F;border:1.5px solid '+accent+'40">'+
+    '<div class="slide-fill" data-slide-fill style="width:47px;background:'+accent+';opacity:.3"></div>'+
+    '<div class="slide-label" style="color:'+accent+'">スライドして完了</div>'+
+    '<div class="slide-handle" data-slide-handle style="width:44px;height:44px;border:2px solid '+accent+'">'+icon('chevronRight',{size:20,color:accent,strokeWidth:2.5})+'</div>'+
+  '</div></div>';
+}
+
+function renderGoalCard(goal){
+  var doneCount = goal.subtasks.filter(function(s){return s.done;}).length;
+  var total = goal.subtasks.length;
+  var nextIdx = goal.subtasks.findIndex(function(s){return !s.done;});
+  var remain = daysUntil(goal.deadline);
+  var metaPill = '';
+  if(remain!==null){
+    var cls = remain<0 ? 'late' : (remain<=3?'warn':'');
+    var txt = remain<0 ? (Math.abs(remain)+'日超過') : (remain===0?'今日が締切':('あと'+remain+'日'));
+    metaPill = '<span class="pill'+(cls?' '+cls:'')+'">'+txt+'</span>';
+  }
+  var rows = goal.subtasks.map(function(s,i){
+    if(s.done){
+      return '<div class="sub-row"><div class="sub-row-top">'+
+        '<div class="chk">'+icon('check',{size:13,color:'#fff',strokeWidth:3.5})+'</div>'+
+        '<span class="sub-text done">'+esc(s.text)+'</span>'+
+        '<button class="undo-mini" data-action="toggle-sub" data-goal="'+goal.id+'" data-sub="'+s.id+'">取り消す</button>'+
+      '</div></div>';
+    }
+    var isNext = i===nextIdx;
+    var picking = ui.pickingFor===s.id;
+    var timerRow = picking ? (
+      '<div class="timer-pick"><span>時間を選ぶ:</span>'+
+      TIMER_PRESETS.map(function(m){return '<button class="tp-btn" data-action="start-timer" data-goal="'+goal.id+'" data-sub="'+s.id+'" data-min="'+m+'">'+m+'分</button>';}).join('')+
+      '</div>'
+    ) : '';
+    return '<div class="sub-row'+(isNext?' active':'')+'">'+
+      '<div class="sub-row-top">'+
+        '<span class="sub-text">'+esc(s.text)+'</span>'+
+        '<button class="start-btn'+(isNext?' next':'')+'" data-action="pick-timer" data-sub="'+s.id+'">'+icon('play',{size:11})+' 開始</button>'+
+      '</div>'+
+      renderSlide(goal.id, s.id, isNext?'#FF7A59':'#B7B0DE')+
+      timerRow+
+    '</div>';
+  }).join('');
+  return '<div class="card">'+
+    '<div class="card-top"><h3 class="card-title disp">'+esc(goal.title)+'</h3>'+
+      '<button class="card-del" data-action="delete-goal" data-goal="'+goal.id+'" aria-label="目標を削除">'+icon('trash2',{size:15,color:'#B7B0DE'})+'</button>'+
+    '</div>'+
+    (goal.measurable ? '<p class="card-measurable">'+esc(goal.measurable)+'</p>' : '')+
+    '<div class="card-meta"><span>'+doneCount+'/'+total+' ステップ完了</span>'+metaPill+'</div>'+
+    rows+
+    (goal.relevant ? '<p class="card-quote">"'+esc(goal.relevant)+'"</p>' : '')+
+  '</div>';
+}
+
+function renderMain(){
+  if(state.goals.length===0){
+    return '<main><div class="empty">'+
+      '<div class="empty-icon">'+icon('rocket',{size:28,color:'#6C5CE7'})+'</div>'+
+      '<h1 class="disp">まだ目標がありません</h1>'+
+      '<p>大きな目標は脳がフリーズする。<br>ここでは一度に一つだけ聞くから、気楽にどうぞ。</p>'+
+      '<button class="btn-primary" data-action="open-wizard">'+icon('plus',{size:18})+' はじめる</button>'+
+    '</div></main>';
+  }
+  var active = state.goals.filter(function(g){ return g.subtasks.length===0 || g.subtasks.some(function(s){return !s.done;}); });
+  var done = state.goals.filter(function(g){ return g.subtasks.length>0 && g.subtasks.every(function(s){return s.done;}); });
+  var html = '<main><div class="goal-list">'+active.map(renderGoalCard).join('')+'</div>';
+  if(done.length){
+    html += '<div class="archive-head">'+icon('sparkles',{size:14,color:'#9891C4'})+' やり切った目標 ('+done.length+')</div>';
+    html += done.map(function(g){
+      return '<div class="archive-row">'+
+        '<div style="display:flex;align-items:center;gap:8px;min-width:0">'+icon('check',{size:16,color:'#2EC4B6'})+'<span class="archive-title">'+esc(g.title)+'</span></div>'+
+        '<div style="display:flex;align-items:center;gap:2px;flex-shrink:0">'+
+          '<button class="archive-btn" data-action="reopen-goal" data-goal="'+g.id+'">'+icon('rotateCcw',{size:13})+' 元に戻す</button>'+
+          '<button class="card-del" data-action="delete-goal" data-goal="'+g.id+'" aria-label="削除">'+icon('trash2',{size:14,color:'#4B7B75'})+'</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+  html += '</main>';
+  return html;
+}
+
+function renderWizard(){
+  if(!ui.wizardOpen) return '';
+  var step = WIZARD_STEPS[ui.wizardStep];
+  var isLast = ui.wizardStep===WIZARD_STEPS.length-1;
+  var body='';
+  if(step.key==='subtasks'){
+    body = '<div class="sub-add-row"><input id="sub-draft" class="field-input" placeholder="例: 参考資料を1つ開く" autofocus>'+
+      '<button class="footer-next" style="background:'+step.color+'" data-action="add-sub">追加</button></div>'+
+      ui.wizardData.subtasks.map(function(t,i){
+        return '<div class="sub-chip"><span style="font-size:14px"><span class="mono" style="color:#9891C4;margin-right:8px">'+(i+1)+'</span>'+esc(t)+'</span>'+
+          '<button data-action="remove-sub" data-i="'+i+'">'+icon('x',{size:15,color:'#B7B0DE'})+'</button></div>';
+      }).join('');
+  } else if(step.key==='timebound'){
+    body = '<input id="wizard-field" type="date" class="field-input" value="'+esc(ui.wizardData.timebound)+'" autofocus>';
+  } else {
+    var isTextarea = step.key==='relevant';
+    var val = esc(ui.wizardData[step.key]);
+    body = isTextarea
+      ? '<textarea id="wizard-field" class="field-input" rows="3" placeholder="ここに入力…" autofocus>'+val+'</textarea>'
+      : '<textarea id="wizard-field" class="field-input" rows="2" placeholder="ここに入力…" autofocus>'+val+'</textarea>';
+  }
+  var canAdvanceNow = step.key==='subtasks' ? ui.wizardData.subtasks.length>0
+    : step.key==='relevant' ? true
+    : step.key==='timebound' ? !!ui.wizardData.timebound
+    : !!ui.wizardData[step.key].trim();
+
+  var guideBlock = '<div class="eyebrow-row"><span class="eyebrow" style="color:'+step.color+'">'+step.eyebrow+'</span>'+
+      '<span class="step-label">'+step.label+' · '+(ui.wizardStep+1)+'/'+WIZARD_STEPS.length+'</span></div>'+
+      '<h2 class="prompt">'+step.prompt+'</h2><p class="hint">'+step.hint+'</p>';
+
+  return '<div class="modal-overlay" id="wizard-overlay">'+
+    '<div class="modal-card" id="wizard-card">'+
+      '<button class="modal-close" data-action="close-wizard" aria-label="閉じる">'+icon('x',{size:17,color:'#B7B0DE'})+'</button>'+
+      '<div class="modal-body" id="wizard-scroll">'+
+        '<div class="dots">'+WIZARD_STEPS.map(function(s,i){return '<div class="dot" style="background:'+(i<=ui.wizardStep?s.color:'#EDEAFB')+'"></div>';}).join('')+'</div>'+
+        '<div class="guide" id="wizard-guide"><div class="guide-icon" style="background:'+step.color+'">'+icon(step.icon,{size:28,color:'#fff',strokeWidth:2.2})+'</div>'+guideBlock+'</div>'+
+        '<div id="wizard-compact" class="compact-row" style="display:none"><span class="eyebrow" style="background:#F6F4FF;color:'+step.color+'">'+step.eyebrow+'</span><h2 class="prompt">'+step.prompt+'</h2></div>'+
+        body+
+      '</div>'+
+      '<div class="modal-footer">'+
+        '<button class="footer-back" data-action="wizard-back">'+icon('chevronLeft',{size:16})+' '+(ui.wizardStep===0?'閉じる':'戻る')+'</button>'+
+        '<button class="footer-next" id="wizard-next-btn" style="background:'+(isLast?'#2EC4B6':step.color)+'" data-action="wizard-next" '+(canAdvanceNow?'':'disabled')+'>'+(isLast?'目標をつくる':'次へ')+' '+icon('arrowRight',{size:16,color:'#fff'})+'</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderTimer(){
+  var t = ui.activeTimer;
+  if(!t) return '';
+  var goal = findGoal(t.goalId);
+  var sub = goal && goal.subtasks.find(function(s){return s.id===t.subId;});
+  if(t.done){
+    return '<div class="modal-overlay timer"><div class="timer-inner">'+
+      '<div class="timer-done-icon">'+icon('check',{size:36,color:'#fff',strokeWidth:3})+'</div>'+
+      '<h2 class="timer-done-title">時間終了!</h2><p class="timer-done-sub">このステップ、完了にする?</p>'+
+      '<div class="timer-actions">'+
+        '<button class="tbtn cancel" data-action="timer-keep-going" style="display:flex;align-items:center;gap:8px">'+icon('rotateCcw',{size:15})+' まだ途中</button>'+
+        '<button class="tbtn pause" data-action="timer-finish">'+icon('check',{size:16})+' 完了にする</button>'+
+      '</div>'+
+    '</div></div>';
+  }
+  var mins = String(Math.floor(t.seconds/60)).padStart(2,'0');
+  var secs = String(t.seconds%60).padStart(2,'0');
+  var pct = 1 - t.seconds/t.total;
+  var circ = 2*Math.PI*45;
+  return '<div class="modal-overlay timer"><div class="timer-inner">'+
+    '<p class="timer-goal">'+esc(goal?goal.title:'')+'</p><p class="timer-sub">'+esc(sub?sub.text:'')+'</p>'+
+    '<div class="timer-ring"><svg width="224" height="224" viewBox="0 0 100 100" style="transform:rotate(-90deg)">'+
+      '<circle cx="50" cy="50" r="45" fill="none" stroke="#3A3660" stroke-width="6"/>'+
+      '<circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#FF7A59" stroke-width="6" stroke-dasharray="'+circ+'" stroke-dashoffset="'+(circ*(1-pct))+'" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear"/>'+
+    '</svg><div class="timer-time" id="timer-time">'+mins+':'+secs+'</div></div>'+
+    '<div class="timer-actions">'+
+      '<button class="tbtn cancel" data-action="timer-cancel">やめる</button>'+
+      '<button class="tbtn pause" data-action="timer-pause">'+(t.running?icon('pause',{size:16})+' 一時停止':icon('play',{size:16})+' 再開')+'</button>'+
+    '</div>'+
+  '</div></div>';
+}
+
+function renderInstallGuide(){
+  if(!ui.installGuideOpen) return '';
+  var platform = detectPlatform();
+  var steps = {
+    ios:[['share2','画面下(または上)の共有ボタンをタップ'],['plus','「ホーム画面に追加」を選ぶ'],['check','右上の「追加」をタップして完了']],
+    android:[['moreVertical','右上の「⋮」メニューを開く'],['plus','「ホーム画面に追加」または「アプリをインストール」を選ぶ'],['check','「追加」をタップして完了']],
+    other:[['share2','ブラウザのメニューを開く'],['plus','「ホーム画面に追加」に近い項目を探す'],['check','案内に沿って追加すれば完了']]
+  }[platform];
+  return '<div class="modal-overlay"><div class="modal-card">'+
+    '<button class="modal-close" data-action="close-install-guide">'+icon('x',{size:17,color:'#B7B0DE'})+'</button>'+
+    '<div class="modal-body">'+
+      '<div class="guide"><div class="guide-icon" style="background:#6C5CE7">'+icon('smartphone',{size:28,color:'#fff',strokeWidth:2.2})+'</div>'+
+        '<h2 class="prompt">ホーム画面に追加する</h2><p class="hint" style="max-width:260px">アイコンをタップするだけで開けるようになる。ブラウザを探す手間が、開始のハードルを一つ減らす。</p></div>'+
+      steps.map(function(s,i){ return '<div class="guide-step"><div class="guide-step-n">'+(i+1)+'</div><div class="guide-step-text">'+s[1]+'</div>'+icon(s[0],{size:16,color:'#9891C4'})+'</div>'; }).join('')+
+      (platform==='other' ? '<p style="font-size:12px;text-align:center;color:#B7B0DE;margin-top:8px">iPhoneのSafari、AndroidのChromeで開くと手順が自動で表示されます。</p>' : '')+
+      '<button class="guide-done-btn" data-action="close-install-guide">わかった</button>'+
+    '</div>'+
+  '</div></div>';
+}
+
+function renderToasts(){
+  var html='';
+  if(ui.pendingDelete){
+    html += '<div class="toast undo"><div class="toast-msg">'+icon('trash2',{size:16,color:'#B7B0DE'})+'<span>「'+esc(ui.pendingDelete.goal.title)+'」を削除しました</span></div>'+
+      '<div class="toast-actions"><button class="toast-undo-btn" data-action="undo-delete">'+icon('rotateCcw',{size:14})+' 元に戻す</button>'+
+      '<button class="toast-x" data-action="dismiss-delete-toast">'+icon('x',{size:15,color:'#726B9E'})+'</button></div></div>';
+  } else if(ui.pendingGoalDone){
+    html += '<div class="toast undo"><div class="toast-msg">'+icon('sparkles',{size:16,color:'#B7B0DE'})+'<span>「'+esc(ui.pendingGoalDone.title)+'」を達成しました!</span></div>'+
+      '<div class="toast-actions"><button class="toast-undo-btn" data-action="undo-goal-done">'+icon('rotateCcw',{size:14})+' 元に戻す</button>'+
+      '<button class="toast-x" data-action="dismiss-goal-done-toast">'+icon('x',{size:15,color:'#726B9E'})+'</button></div></div>';
+  }
+  if(ui.celebrate!==null){
+    html += '<div class="celebrate">'+icon('sparkles',{size:16,color:'#FFD166'})+'<span>「'+esc(ui.celebrate)+'」が一歩前進!</span></div>';
+  }
+  if(ui.saveError){
+    html += '<div class="save-error">保存に失敗しました。もう一度試してください。</div>';
+  }
+  return html;
+}
+
+/* ============ master render ============ */
+function render(){
+  var html = renderHeader() + renderMain() +
+    '<button id="fab" data-action="open-wizard">'+icon('plus',{size:20,strokeWidth:2.5})+' 目標をつくる</button>'+
+    renderWizard() + renderTimer() + renderInstallGuide() + renderToasts();
+  document.getElementById('app').innerHTML = html;
+  if(ui.wizardOpen) afterWizardRender();
+}
+
+function afterWizardRender(){
+  applyKeyboardCompactState();
+  var field = document.getElementById('wizard-field');
+  if(field){
+    field.addEventListener('input', function(){
+      var btn = document.getElementById('wizard-next-btn');
+      if(btn) btn.disabled = !field.value.trim();
     });
   }
+}
+
+/* Compact mode while the on-screen keyboard is up: hide the big guide
+   icon so the input + footer buttons never get pushed out of view. */
+var maxSeenHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+function applyKeyboardCompactState(){
+  var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  if(vh>maxSeenHeight) maxSeenHeight=vh;
+  var keyboardOpen = vh < maxSeenHeight*0.75;
+  var guide = document.getElementById('wizard-guide');
+  var compact = document.getElementById('wizard-compact');
+  var overlay = document.getElementById('wizard-overlay');
+  var card = document.getElementById('wizard-card');
+  if(overlay) overlay.style.height = vh+'px';
+  if(card) card.style.maxHeight = Math.round(vh*0.96)+'px';
+  if(guide && compact){
+    guide.style.display = keyboardOpen ? 'none' : 'flex';
+    compact.style.display = keyboardOpen ? 'flex' : 'none';
+  }
+}
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', function(){ if(ui.wizardOpen) applyKeyboardCompactState(); });
+}
+
+/* ============ timer DOM micro-update (no full re-render, for smooth countdown) ============ */
+function updateTimerDom(){
+  var t = ui.activeTimer;
+  if(!t) return;
+  var timeEl = document.getElementById('timer-time');
+  var circleEl = document.getElementById('timer-circle');
+  if(timeEl){
+    var mins = String(Math.floor(t.seconds/60)).padStart(2,'0');
+    var secs = String(t.seconds%60).padStart(2,'0');
+    timeEl.textContent = mins+':'+secs;
+  }
+  if(circleEl){
+    var pct = 1 - t.seconds/t.total;
+    var circ = 2*Math.PI*45;
+    circleEl.setAttribute('stroke-dashoffset', circ*(1-pct));
+  }
+}
+
+/* ============ slide-to-complete drag ============ */
+function slideMetrics(track){
+  var handle = 44, pad = 3;
+  return {handle:handle, pad:pad, max: Math.max(0, track.offsetWidth-handle-pad*2)};
+}
+document.addEventListener('pointerdown', function(e){
+  var track = e.target.closest('[data-slide-track]');
+  if(!track) return;
+  var m = slideMetrics(track);
+  dragState = {
+    track:track, goalId:track.getAttribute('data-goal'), subId:track.getAttribute('data-sub'),
+    handle:track.querySelector('[data-slide-handle]'), fill:track.querySelector('[data-slide-fill]'),
+    x:0, max:m.max, handleSize:m.handle, pad:m.pad, completing:false
+  };
+  dragState.handle.classList.add('dragging');
+  try{ e.target.setPointerCapture(e.pointerId); }catch(err){}
+});
+document.addEventListener('pointermove', function(e){
+  if(!dragState || dragState.completing) return;
+  var rect = dragState.track.getBoundingClientRect();
+  var x = e.clientX - rect.left - dragState.pad - dragState.handleSize/2;
+  x = Math.max(0, Math.min(dragState.max, x));
+  dragState.x = x;
+  dragState.handle.style.transform = 'translateX('+x+'px)';
+  dragState.fill.style.width = (x+dragState.handleSize+dragState.pad)+'px';
+  var progress = dragState.max>0 ? x/dragState.max : 0;
+  dragState.fill.style.opacity = 0.3 + progress*0.4;
+});
+function endDrag(){
+  if(!dragState) return;
+  var d = dragState;
+  d.handle.classList.remove('dragging');
+  if(d.max>0 && d.x > d.max*0.72){
+    d.completing = true;
+    d.handle.style.transform = 'translateX('+d.max+'px)';
+    d.fill.style.width = (d.max+d.handleSize+d.pad)+'px';
+    var goalId=d.goalId, subId=d.subId;
+    dragState=null;
+    setTimeout(function(){ toggleSubtask(goalId, subId, true); }, 220);
+  } else {
+    d.handle.style.transform = 'translateX(0px)';
+    d.fill.style.width = (d.handleSize+d.pad)+'px';
+    dragState=null;
+  }
+}
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
+
+/* ============ event delegation: clicks ============ */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]');
+  if(!el) return;
+  var action = el.getAttribute('data-action');
+  switch(action){
+    case 'open-wizard': openWizard(); break;
+    case 'close-wizard': closeWizard(); break;
+    case 'wizard-back': wizardBack(); break;
+    case 'wizard-next': wizardNext(); break;
+    case 'add-sub': addSubtaskDraft(); break;
+    case 'remove-sub': removeSubtaskDraft(parseInt(el.getAttribute('data-i'),10)); break;
+    case 'toggle-sub': toggleSubtask(el.getAttribute('data-goal'), el.getAttribute('data-sub')); break;
+    case 'pick-timer': pickTimerFor(el.getAttribute('data-sub')); break;
+    case 'start-timer': startTimer(el.getAttribute('data-goal'), el.getAttribute('data-sub'), parseInt(el.getAttribute('data-min'),10)); break;
+    case 'delete-goal': deleteGoal(el.getAttribute('data-goal')); break;
+    case 'undo-delete': undoDelete(); break;
+    case 'dismiss-delete-toast': dismissDeleteToast(); break;
+    case 'undo-goal-done': undoGoalDone(); break;
+    case 'dismiss-goal-done-toast': dismissGoalDoneToast(); break;
+    case 'reopen-goal': reopenGoal(el.getAttribute('data-goal')); break;
+    case 'timer-pause': pauseResumeTimer(); break;
+    case 'timer-cancel': cancelTimer(); break;
+    case 'timer-finish': finishTimerMarkDone(); break;
+    case 'timer-keep-going': keepGoingTimer(); break;
+    case 'install-guide': openInstallGuide(); break;
+    case 'close-install-guide': closeInstallGuide(); break;
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Enter' && e.target && e.target.id==='sub-draft'){ e.preventDefault(); addSubtaskDraft(); }
+});
+
+/* ============ service worker ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+/* ============ boot ============ */
+render();
 </script>
 </body>
 </html>

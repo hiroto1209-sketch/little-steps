@@ -1,6 +1,6 @@
 # little steps — GitHub Pagesで公開する手順
 
-このフォルダの中身だけで動く、単体のWebアプリ(PWA)です。ビルドや`npm install`は不要です。
+このフォルダの中身だけで動く、単体のWebアプリ(PWA)です。ビルドや`npm install`は不要です。**React等の外部ライブラリにも一切依存していません**(HTML・CSS・JavaScriptだけの1ファイル構成)。外部の配信元(CDN)が読み込めずに真っ白になる、という問題がそもそも起こらない作りです。
 
 ```
 little-steps-pwa/

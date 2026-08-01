@@ -1,6 +1,8 @@
-// Minimal offline-first shell cache. Bump CACHE_NAME whenever index.html
-// (or anything else in ASSETS) changes, so old caches are dropped.
-const CACHE_NAME = "little-steps-v3";
+// Network-first offline shell cache. The whole app is a single self-contained
+// index.html now (no external framework/CDN scripts), so this only needs to
+// worry about this app's own files. Bump CACHE_NAME on any deploy that
+// changes index.html so old caches are dropped.
+const CACHE_NAME = "little-steps-v14";
 const ASSETS = [
   "./",
   "./index.html",
@@ -29,19 +31,17 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  if (new URL(event.request.url).origin !== self.location.origin) return;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((response) => {
-          // only cache same-origin, successful responses (skip CDN scripts etc.)
-          if (response.ok && new URL(event.request.url).origin === self.location.origin) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
