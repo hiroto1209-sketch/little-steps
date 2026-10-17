@@ -2,7 +2,7 @@
 // index.html now (no external framework/CDN scripts), so this only needs to
 // worry about this app's own files. Bump CACHE_NAME on any deploy that
 // changes index.html so old caches are dropped.
-const CACHE_NAME = "little-steps-v14";
+const CACHE_NAME = "little-steps-v15";
 const ASSETS = [
   "./",
   "./index.html",

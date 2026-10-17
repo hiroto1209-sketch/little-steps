@@ -2,816 +2,1579 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="little steps">
-<meta name="theme-color" content="#6C5CE7">
+<meta name="theme-color" content="#4C3BB8">
+<meta name="color-scheme" content="light">
 <meta name="description" content="大きな目標を、脳がフリーズしない小さな一歩に分けるSMART目標アプリ">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <title>little steps — ADHDにやさしいSMART目標アプリ</title>
+<script>document.documentElement.classList.add("js");</script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
-
-:root{
-  --bg:#F6F4FF; --surface:#FFFFFF; --surface2:#F0EEFB; --border:#E4E0FA;
-  --text:#211F3A; --text2:#3A3660; --muted:#726B9E; --faint:#9891C4; --faintest:#B7B0DE;
-  --violet:#6C5CE7; --violet-light:#EDEAFB;
-  --coral:#FF7A59; --coral-light:#FFF4F0;
-  --teal:#2EC4B6; --teal-light:#EAF9F6;
-  --amber:#FFD166; --amber-dark:#B4690E; --amber-light:#FFF1D6;
-  --pink:#FF6B9D; --blue:#3D9BE9; --red:#C4432B; --red-light:#FFE5E0;
-  --ink:#211F3A;
-  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+:root {
+  --bg: #F4F1FB;
+  --surface: #FFFFFF;
+  --text: #1C1733;
+  --soft: #433E5C;
+  --muted: #4E4868;
+  --violet: #4C3BB8;
+  --violet-ink: #3F319A;
+  --violet-soft: #EDE9FB;
+  --line: #D9D3F0;
+  --teal: #0F766E;
+  --amber: #8A5A00;
+  --amber-soft: #FFF3D6;
+  --danger-bg: #FDECE7;
+  --danger-ink: #6B3A2E;
+  --ink: #1C1733;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --ease: cubic-bezier(0.33, 1, 0.68, 1);
+  --back: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;-webkit-text-size-adjust:100%}
-button,input,textarea{font-family:inherit;font-size:16px}
-button{cursor:pointer;border:none;background:none;color:inherit}
-.disp{font-family:'Fredoka',sans-serif}
-.mono{font-family:'JetBrains Mono',monospace}
-#app{min-height:100%;padding-bottom:calc(96px + var(--safe-b))}
-
-/* ---------- header ---------- */
-#header{position:sticky;top:0;z-index:20;background:rgba(246,244,255,.88);backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--border);padding-top:var(--safe-t)}
-#header-row{max-width:720px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.h-left{display:flex;align-items:center;gap:8px;min-width:0}
-.logo{width:36px;height:36px;border-radius:14px;background:var(--violet);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.h-title{font-size:20px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.h-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--violet-light);display:flex;align-items:center;justify-content:center;transition:transform .12s}
-.icon-btn:active{transform:scale(.92)}
-.streak-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--violet-light)}
-.streak-badge.on{background:var(--amber-light)}
-.streak-val{font-weight:700;font-size:14px;color:var(--faint)}
-.streak-badge.on .streak-val{color:var(--amber-dark)}
-
-main{max-width:720px;margin:0 auto;padding:24px 20px 0}
-
-/* ---------- empty state ---------- */
-.empty{padding:64px 8px 32px;text-align:center}
-.empty-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:24px;background:var(--violet-light);display:flex;align-items:center;justify-content:center}
-.empty h1{font-size:24px;font-weight:600;margin-bottom:8px}
-.empty p{font-size:14px;color:var(--muted);line-height:1.7;max-width:280px;margin:0 auto 28px}
-.btn-primary{font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;background:var(--violet);
-  padding:12px 24px;border-radius:16px;display:inline-flex;align-items:center;gap:8px;transition:transform .12s}
-.btn-primary:active{transform:scale(.96)}
-
-/* ---------- goal card ---------- */
-.goal-list{display:flex;flex-direction:column;gap:20px}
-.card{background:var(--surface);border-radius:24px;padding:20px;box-shadow:0 1px 3px rgba(76,63,140,.08),0 1px 2px rgba(76,63,140,.06)}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
-.card-title{font-family:'Fredoka',sans-serif;font-size:18px;font-weight:600;line-height:1.35}
-.card-del{flex-shrink:0;padding:6px;border-radius:8px}
-.card-del:active{background:var(--bg)}
-.card-measurable{font-size:14px;color:var(--muted);margin-bottom:12px}
-.card-meta{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:12px;font-weight:500;color:var(--faint)}
-.pill{padding:2px 8px;border-radius:999px;background:var(--violet-light);color:var(--violet)}
-.pill.warn{background:var(--amber-light);color:var(--amber-dark)}
-.pill.late{background:var(--red-light);color:var(--red)}
-.sub-row{border-radius:12px;padding:8px 12px;margin-bottom:8px}
-.sub-row.active{background:var(--coral-light)}
-.sub-row-top{display:flex;align-items:center;gap:8px}
-.sub-text{flex:1;font-size:14px;color:var(--text2)}
-.sub-text.done{color:var(--faintest);text-decoration:line-through}
-.chk{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center}
-.start-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;background:var(--violet-light);color:var(--violet)}
-.start-btn.next{background:var(--coral);color:#fff}
-.undo-mini{flex-shrink:0;font-size:12px;font-weight:600;color:var(--faint);padding:4px 8px;border-radius:8px}
-.slide-wrap{margin-top:8px}
-.slide-track{position:relative;width:100%;height:50px;border-radius:999px;touch-action:none;overflow:hidden}
-.slide-fill{position:absolute;inset:0 auto 0 0;border-radius:999px;transition:width .25s ease}
-.slide-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:.02em;pointer-events:none}
-.slide-handle{position:absolute;top:3px;left:3px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 8px rgba(33,31,58,.28);transition:transform .25s ease}
-.slide-handle.dragging{transition:none}
-.card-quote{margin-top:16px;padding-top:12px;border-top:1px solid var(--surface2);font-size:12px;font-style:italic;color:var(--faintest)}
-.timer-pick{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 4px}
-.timer-pick span{font-size:12px;color:var(--faint)}
-.tp-btn{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;background:var(--violet-light);color:var(--violet)}
-
-/* ---------- archive ---------- */
-.archive-head{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--faint);margin:36px 0 12px}
-.archive-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--teal-light);border-radius:16px;padding:10px 16px;margin-bottom:8px}
-.archive-title{font-size:14px;color:#4B7B75;text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.archive-btn{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#2E9187;padding:6px 8px;border-radius:8px}
-
-/* ---------- FAB ---------- */
-#fab{position:fixed;right:24px;bottom:calc(24px + var(--safe-b));z-index:30;
-  font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;
-  background:linear-gradient(135deg,var(--coral),#FF9F6E);
-  padding:14px 20px;border-radius:999px;display:flex;align-items:center;gap:8px;
-  box-shadow:0 8px 20px rgba(255,122,89,.35);transition:transform .12s}
-#fab:active{transform:scale(.95)}
-
-/* ---------- modal shell (wizard / install guide) ---------- */
-.modal-overlay{position:fixed;left:0;right:0;top:0;z-index:40;display:flex;justify-content:center;
-  background:rgba(33,31,58,.5);padding-top:var(--safe-t);overflow-y:auto}
-.modal-overlay.timer{background:#211F3A;align-items:center;padding:0}
-.modal-card{width:100%;max-width:520px;background:#fff;border-radius:0 0 24px 24px;position:relative;
-  animation:descend .4s cubic-bezier(.22,1,.36,1)}
-@keyframes descend{from{transform:translateY(-32px);opacity:0}to{transform:translateY(0);opacity:1}}
-@media(min-width:640px){.modal-card{border-radius:24px;margin-top:40px}}
-.modal-close{position:absolute;top:16px;right:16px;z-index:5;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.modal-close:active{background:rgba(0,0,0,.05)}
-.modal-body{padding:28px 24px 16px;overflow-y:auto}
-.dots{display:flex;gap:6px;margin-bottom:16px;padding-right:32px}
-.dot{flex:1;height:6px;border-radius:999px;background:var(--violet-light);transition:background .2s}
-.guide{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:20px}
-.guide-icon{width:64px;height:64px;border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;animation:bob 2.4s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
-.eyebrow-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--bg)}
-.step-label{font-size:12px;font-weight:600;color:var(--faint)}
-.prompt{font-family:'Fredoka',sans-serif;font-size:20px;font-weight:600;line-height:1.35}
-.hint{font-size:14px;color:var(--faint);margin-top:4px}
-.compact-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
-.compact-row .prompt{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.field-input{width:100%;padding:12px 16px;border-radius:12px;border:2px solid var(--violet-light);outline:none;resize:none}
-.field-input:focus{border-color:var(--violet)}
-.sub-add-row{display:flex;gap:8px;margin-bottom:12px}
-.sub-chip{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:12px;background:var(--bg);margin-bottom:8px}
-.modal-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--surface2);
-  padding-bottom:calc(16px + var(--safe-b))}
-.footer-back{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--faint);padding:10px 16px;border-radius:12px}
-.footer-next{display:flex;align-items:center;gap:6px;font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;padding:10px 20px;border-radius:12px}
-.footer-next:disabled{opacity:.4}
-
-/* ---------- timer overlay ---------- */
-.timer-inner{width:100%;max-width:360px;text-align:center;padding:24px}
-.timer-goal{font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
-.timer-sub{font-size:14px;color:#C9C3EE;margin-bottom:32px}
-.timer-ring{position:relative;width:224px;height:224px;margin:0 auto 32px}
-.timer-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:700;color:#fff}
-.timer-actions{display:flex;align-items:center;justify-content:center;gap:12px}
-.tbtn{padding:12px 20px;border-radius:16px;font-size:14px;font-weight:600}
-.tbtn.cancel{background:#3A3660;color:#C9C3EE}
-.tbtn.pause{display:flex;align-items:center;gap:8px;background:var(--violet);color:#fff;font-family:'Fredoka',sans-serif}
-.timer-done-icon{width:80px;height:80px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
-.timer-done-title{font-family:'Fredoka',sans-serif;font-size:24px;font-weight:600;color:#fff;margin-bottom:8px}
-.timer-done-sub{font-size:14px;color:#C9C3EE;margin-bottom:32px}
-
-/* ---------- toasts ---------- */
-.toast{position:fixed;left:20px;right:20px;max-width:448px;margin:0 auto;z-index:40;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;background:#211F3A;color:#fff;
-  padding:14px 16px;border-radius:16px;box-shadow:0 8px 24px rgba(33,31,58,.3);animation:descend .3s ease-out}
-.toast.undo{bottom:calc(92px + var(--safe-b))}
-.toast-msg{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.toast-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
-.toast-undo-btn{display:flex;align-items:center;gap:4px;font-family:'Fredoka',sans-serif;font-size:14px;font-weight:600;color:#fff;background:var(--coral);padding:6px 12px;border-radius:8px}
-.toast-x{padding:6px;border-radius:8px}
-.celebrate{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:50;
-  display:flex;align-items:center;gap:8px;background:#211F3A;color:#fff;padding:12px 20px;border-radius:16px;
-  box-shadow:0 8px 24px rgba(33,31,58,.3);animation:pop .35s ease-out;font-size:14px;white-space:nowrap}
-@keyframes pop{0%{transform:translateX(-50%) scale(.85);opacity:0}60%{transform:translateX(-50%) scale(1.05);opacity:1}100%{transform:translateX(-50%) scale(1)}}
-.save-error{position:fixed;bottom:24px;left:24px;z-index:40;background:var(--red-light);color:var(--red);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500}
-
-.guide-step{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:16px;background:var(--bg);margin-bottom:12px}
-.guide-step-n{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--violet);flex-shrink:0}
-.guide-step-text{flex:1;font-size:14px}
-.guide-done-btn{width:100%;margin-top:20px;font-family:'Fredoka',sans-serif;font-weight:600;color:#fff;background:var(--violet);padding:12px;border-radius:16px}
-
-@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100%;
+  background:
+    radial-gradient(900px 420px at 50% -12%, #E3DCFB 0%, transparent 58%),
+    linear-gradient(180deg, #F7F4FF 0%, var(--bg) 42%, #F7F4F1 100%);
+  color: var(--text);
+  font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", "Noto Sans JP", "WenQuanYi Micro Hei", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; padding: 0; touch-action: manipulation; }
+button:disabled { cursor: default; }
+[hidden] { display: none !important; }
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+::placeholder { color: var(--muted); opacity: 1; }
+::selection { background: #DDD6FE; color: var(--text); }
+.skip {
+  position: absolute; left: 12px; top: -48px; z-index: 100;
+  background: #fff; color: var(--violet-ink); font-weight: 700;
+  padding: 10px 14px; border-radius: 12px;
+}
+.skip:focus { top: calc(12px + var(--safe-t)); }
+#app { max-width: 520px; margin: 0 auto; }
+header {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(12px + var(--safe-t)) 20px 12px;
+  background: rgba(244, 241, 251, 0.94);
+}
+@supports (backdrop-filter: blur(12px)) {
+  header { background: rgba(244, 241, 251, 0.78); backdrop-filter: blur(12px); }
+}
+.h-left, .h-right, .h-stats { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.logo {
+  width: 36px; height: 36px; border-radius: 12px; background: var(--violet); flex: none;
+  display: grid; grid-template-columns: repeat(3, 6px); gap: 3px; place-content: center;
+}
+.logo i { width: 6px; height: 6px; border-radius: 50%; background: #fff; display: block; }
+.logo i:nth-child(1) { opacity: 0.45; }
+.logo i:nth-child(2) { opacity: 0.72; }
+h1 { font-size: 1.15rem; line-height: 1.2; margin: 0; font-weight: 700; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--violet-soft); color: var(--violet-ink);
+  display: grid; place-items: center; flex: none;
+}
+.lifetime, .streak {
+  display: flex; align-items: baseline; gap: 2px;
+  border-radius: 999px; padding: 4px 10px; background: var(--violet-soft); color: var(--violet-ink);
+  font-weight: 700; font-size: 0.78rem; white-space: nowrap;
+}
+.lifetime strong { font-size: 1rem; font-variant-numeric: tabular-nums; }
+.streak.is-live { background: var(--amber-soft); color: var(--amber); }
+main { padding: 8px 20px 40px; }
+.card {
+  background: var(--surface);
+  border: 1px solid rgba(76, 59, 184, 0.1);
+  border-radius: 28px;
+  padding: 22px 20px 18px;
+  box-shadow: 0 12px 40px rgba(60, 40, 120, 0.06);
+}
+.kicker { margin: 0 0 6px; color: var(--violet-ink); font-weight: 700; font-size: 0.82rem; }
+.goal-title, .empty h2 { margin: 0; font-size: clamp(1.45rem, 5vw, 1.85rem); line-height: 1.4; font-weight: 700; }
+.lead { color: var(--soft); margin: 10px 0 18px; }
+.meta-line, .deadline { margin: 8px 0 0; color: var(--soft); font-size: 0.95rem; }
+.meta-line span {
+  display: block; font-size: 0.75rem; font-weight: 700; color: var(--violet-ink); margin-bottom: 2px;
+}
+.step-text { margin: 16px 0 12px; font-size: 1.35rem; font-weight: 700; line-height: 1.45; }
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 56px; padding: 12px 16px; border-radius: 16px;
+  background: var(--violet); color: #fff; font-weight: 700; font-size: 1.05rem;
+  transition: background-color 180ms var(--ease), filter 180ms var(--ease), transform 120ms var(--ease);
+}
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { background: #E4DFF6; color: var(--muted); transform: none; }
+.btn-primary.is-done { background: var(--teal); }
+.btn-secondary, .chip, .mini-btn, .footer-back, .tbtn.quiet {
+  min-height: 44px; border-radius: 12px; font-weight: 700; color: var(--violet-ink); background: var(--violet-soft);
+}
+.btn-secondary { padding: 0 14px; }
+.chip { padding: 0 14px; border-radius: 999px; }
+.mini-btn, .footer-back { padding: 0 10px; background: transparent; }
+.linkish {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 8px 12px; width: 100%;
+  color: var(--violet-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+}
+.release { color: var(--soft); font-weight: 500; text-decoration-thickness: 1px; }
+.check-pop { display: grid; place-items: center; }
+.check-disc { fill: none; stroke: currentColor; stroke-width: 2; }
+.check-mark {
+  fill: none; stroke: currentColor; stroke-width: 2.6;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 32; stroke-dashoffset: 32;
+}
+.box {
+  width: 44px; height: 44px; flex: none; border-radius: 50%;
+  border: 2px solid var(--violet); background: #fff; color: var(--violet);
+  display: grid; place-items: center;
+}
+.box svg { width: 22px; height: 22px; }
+.btn-primary svg { width: 26px; height: 26px; }
+.box.is-done { background: var(--teal); border-color: var(--teal); color: #fff; }
+.btn-primary.is-done .check-pop,
+.box.is-done:not(.is-static) { animation: pop 280ms var(--back); }
+.btn-primary.is-done .check-mark,
+.box.is-done:not(.is-static) .check-mark { animation: draw 240ms var(--ease) forwards; }
+.btn-primary.is-done .check-disc { fill: #fff; stroke: #fff; }
+.btn-primary.is-done .check-mark { stroke: var(--teal); }
+.box.is-done.is-static .check-mark { animation: none; stroke-dashoffset: 0; }
+.reward-badge.box.is-done { animation: none; transform: none; width: 32px; height: 32px; pointer-events: none; }
+.reward-badge.box.is-done .check-mark { animation: draw 240ms var(--ease) forwards; }
+.progress-block { margin-top: 16px; }
+.bar {
+  position: relative; height: 12px; border-radius: 999px; background: var(--violet-soft); overflow: hidden;
+}
+.bar-done, .bar-next { position: absolute; top: 0; bottom: 0; left: 0; }
+.bar-done {
+  background: var(--violet); width: 0; z-index: 1; border-radius: inherit;
+  transition: width 450ms var(--ease);
+}
+.bar-next {
+  background: #C9BEF4; width: 0; z-index: 0;
+  transition: width 450ms var(--ease), left 450ms var(--ease);
+}
+.bar.mini { height: 8px; margin: 4px 0 12px; }
+.bar-caption { margin: 8px 0 0; font-weight: 700; color: var(--violet-ink); font-size: 0.95rem; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 8px; }
+.presets-label { width: 100%; margin: 0; color: var(--soft); font-size: 0.88rem; font-weight: 700; }
+.fold {
+  background: #fff; border: 1px solid rgba(76, 59, 184, 0.1); border-radius: 20px;
+  padding: 0 16px; margin-top: 12px;
+}
+.card .fold { box-shadow: none; }
+summary {
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "text chev" "peek peek";
+  gap: 2px 8px; align-items: center; min-height: 52px; padding: 12px 0; cursor: pointer; list-style: none;
+}
+summary::-webkit-details-marker { display: none; }
+.sum-text { grid-area: text; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.sum-main { font-weight: 700; }
+.sum-meta { color: var(--violet-ink); font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+.peek { grid-area: peek; color: var(--soft); font-size: 0.9rem; }
+.chev {
+  grid-area: chev; width: 10px; height: 10px; justify-self: end;
+  border-right: 2px solid var(--violet-ink); border-bottom: 2px solid var(--violet-ink);
+  transform: rotate(45deg); transition: transform 200ms var(--ease);
+}
+details[open] > summary .chev { transform: rotate(225deg); }
+.steps, .archive-list, .hints, .hist { list-style: none; margin: 0; padding: 0; }
+.steps { display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; }
+.step { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.step-label { color: var(--text); }
+.step.is-done .step-label { color: var(--soft); }
+.note-label { display: block; margin-top: 16px; font-weight: 700; font-size: 0.92rem; }
+.note-label textarea, .field textarea, input[type="date"], input[type="text"] {
+  width: 100%; margin-top: 6px; border: 2px solid var(--line); border-radius: 14px;
+  padding: 12px 14px; background: #fff; color: var(--text); line-height: 1.5; font-weight: 400;
+}
+.opt { color: var(--soft); }
+.section-label { font-size: 0.95rem; margin: 22px 4px 0; }
+.fold-body { padding-bottom: 8px; }
+.archive-list { display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; }
+.archive-item { display: flex; align-items: center; gap: 4px; min-height: 44px; }
+.archive-title { flex: 1; min-width: 0; }
+.hist { display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+.hist div { display: flex; justify-content: space-between; gap: 12px; }
+.hist dt { color: var(--soft); font-weight: 500; }
+.hist dd { margin: 0; font-weight: 700; }
+.hist-note { color: var(--soft); font-size: 0.9rem; margin: 0 0 14px; }
+.hints { counter-reset: hint; display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+.hints li { counter-increment: hint; display: flex; align-items: center; gap: 10px; }
+.hints li::before {
+  content: counter(hint); width: 28px; height: 28px; flex: none; border-radius: 50%;
+  display: grid; place-items: center; background: var(--violet-soft); color: var(--violet-ink);
+  font-weight: 700; font-size: 0.8rem;
+}
+#create-wrap { display: flex; justify-content: center; padding-top: 8px; }
+#dock {
+  position: fixed; z-index: 30; left: 50%; bottom: calc(12px + var(--safe-b));
+  width: min(480px, calc(100% - 32px));
+  opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(16px);
+  transition: opacity 450ms var(--ease), transform 450ms var(--ease);
+}
+#dock.is-on { opacity: 1; pointer-events: auto; transform: translateX(-50%); }
+body.dock-on { padding-bottom: calc(108px + var(--safe-b)); }
+body.modal-open { overflow: hidden; }
+.reward, .toast {
+  position: fixed; z-index: 70; left: 50%; width: min(480px, calc(100% - 24px));
+  transform: translateX(-50%); visibility: hidden;
+}
+.reward { top: calc(72px + var(--safe-t)); }
+.reward.is-in { visibility: visible; animation: rewardIn 280ms var(--back) both; }
+.reward-card, .toast {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--ink); color: #fff; border-radius: 16px; padding: 12px 12px 12px 14px;
+  box-shadow: 0 10px 30px rgba(28, 23, 51, 0.28);
+}
+.toast {
+  position: fixed; bottom: calc(16px + var(--safe-b)); visibility: visible; z-index: 65;
+}
+body.dock-on .toast { bottom: calc(108px + var(--safe-b)); }
+.reward-card p, .toast p { flex: 1; margin: 0; color: #fff; font-weight: 700; line-height: 1.45; }
+.reward-undo, .toast button {
+  flex: none; min-height: 44px; padding: 0 12px; border-radius: 10px;
+  background: #fff; color: var(--violet-ink); font-weight: 700;
+}
+.save-error {
+  position: fixed; z-index: 80; left: 16px; right: 16px; bottom: calc(16px + var(--safe-b));
+  margin: 0 auto; max-width: 480px; background: var(--danger-bg); color: var(--danger-ink);
+  padding: 12px 14px; border-radius: 12px; font-weight: 700;
+}
+.overlay {
+  position: fixed; inset: 0; z-index: 60; background: rgba(28, 23, 51, 0.46);
+  display: flex; justify-content: center; align-items: flex-end;
+}
+.overlay.is-timer { background: var(--ink); align-items: center; padding: 24px 16px; }
+.modal-card {
+  width: 100%; max-width: 520px; max-height: 96%; overflow: auto; background: #fff;
+  border-radius: 24px 24px 0 0; position: relative;
+  animation: rise 450ms var(--ease);
+}
+.modal-close {
+  position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%;
+  color: var(--violet-ink); font-weight: 700; font-size: 1.25rem;
+}
+.modal-body { padding: 22px 20px 8px; }
+.modal-footer {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 12px 20px calc(12px + var(--safe-b)); border-top: 1px solid #E4DFF6;
+  position: sticky; bottom: 0; background: #fff;
+}
+.modal-footer .btn-primary { width: auto; min-width: 9.5rem; }
+.dots { display: flex; gap: 6px; margin: 0 48px 10px 0; }
+.dot { flex: 1; height: 6px; border-radius: 999px; background: #E4DFF6; }
+.dot.is-on { background: var(--violet); }
+.wizard-left { margin: 0 0 8px; color: var(--violet-ink); font-weight: 700; font-size: 0.88rem; }
+.eyebrow { margin: 0; color: var(--violet-ink); font-weight: 700; font-size: 0.78rem; }
+.guide-icon {
+  width: 64px; height: 64px; margin: 8px auto 12px; border-radius: 20px;
+  display: grid; place-items: center; background: var(--violet); color: #fff;
+  font-weight: 700; font-size: 1.4rem;
+}
+#wizard-prompt, .install-title { margin: 4px 0; font-size: 1.35rem; line-height: 1.4; }
+.hint { margin: 0 0 14px; color: var(--soft); }
+.sub-add { display: flex; gap: 8px; align-items: center; }
+.sub-add input { margin-top: 0; }
+.sub-count { color: var(--soft); font-size: 0.88rem; min-height: 1.4em; }
+.chip-row {
+  display: flex; align-items: center; gap: 8px; min-height: 44px;
+  background: var(--bg); border-radius: 12px; padding: 8px 8px 8px 12px; margin-top: 8px;
+}
+.chip-n { width: 1.4rem; color: var(--violet-ink); font-weight: 700; }
+.chip-t { flex: 1; }
+.guide-step {
+  display: flex; gap: 12px; align-items: center; background: var(--bg);
+  border-radius: 14px; padding: 12px; margin-top: 8px;
+}
+.guide-n {
+  width: 32px; height: 32px; flex: none; border-radius: 50%; background: #fff;
+  color: var(--violet-ink); display: grid; place-items: center; font-weight: 700;
+}
+.guide-done { width: 100%; margin-top: 16px; }
+.timer-wrap { width: min(100%, 420px); text-align: center; color: #fff; }
+.timer-kicker { margin: 0; color: #D9D3F0; font-size: 0.82rem; font-weight: 700; }
+.timer-title { margin: 6px 0; font-size: 1.35rem; line-height: 1.4; }
+.timer-sub { margin: 0 0 18px; color: #E4DFF6; }
+.timer-ring { position: relative; width: 220px; height: 220px; margin: 0 auto 20px; }
+.timer-time {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff;
+}
+.timer-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.tbtn { min-height: 48px; padding: 0 16px; border-radius: 14px; font-weight: 700; }
+.tbtn.quiet { background: #3A3458; color: #fff; }
+.timer-primary { width: auto; min-width: 9rem; }
+.noscript { max-width: 520px; margin: 24px auto; padding: 0 20px; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop {
+  from { transform: scale(0.82); }
+  to { transform: scale(1); }
+}
+@keyframes draw {
+  from { stroke-dashoffset: 32; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes rewardIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.92); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes rewardFade {
+  from { opacity: 0; transform: translateX(-50%); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+.js .reveal {
+  opacity: 0;
+  animation-name: rise;
+  animation-duration: 450ms;
+  animation-timing-function: var(--ease);
+  animation-fill-mode: forwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+.step-enter { animation: rise 450ms var(--ease); }
+@media (min-width: 720px) {
+  .overlay { align-items: center; padding: 24px; }
+  .modal-card { border-radius: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal { animation-name: fade; transform: none; }
+  .step-enter, .modal-card { animation-name: fade; }
+  .btn-primary.is-done .check-pop,
+  .box.is-done:not(.is-static) { animation: none; }
+  .btn-primary:active, .box:active, .chip:active { transform: none; filter: brightness(1.08); }
+  .chev, .bar-done, .bar-next { transition: none; }
+  #dock { transition: opacity 450ms ease; transform: translateX(-50%); }
+  #dock.is-on { transform: translateX(-50%); }
+  .reward.is-in { animation-name: rewardFade; }
+}
+@media (forced-colors: active) {
+  .btn-primary, .box, .bar { border: 1px solid ButtonText; }
+}
 </style>
 </head>
 <body>
-<div id="app"></div>
-
+<a class="skip" href="#main">内容へスキップ</a>
+<div id="app">
+  <header>
+    <div class="h-left">
+      <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
+      <h1>little steps</h1>
+    </div>
+    <div class="h-right">
+      <button type="button" id="install-btn" class="icon-btn" data-action="install" aria-label="ホーム画面に追加" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg>
+      </button>
+      <div class="h-stats">
+        <p id="stat-steps-wrap" class="lifetime" hidden><strong id="stat-steps">0</strong><span>歩</span></p>
+        <p id="stat-streak" class="streak" hidden></p>
+      </div>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <section id="today" class="reveal" style="--i:0"></section>
+    <section id="others" class="reveal" style="--i:1" hidden></section>
+    <section id="archive" class="reveal" style="--i:2" hidden></section>
+    <section id="history" class="reveal" style="--i:3" hidden></section>
+    <div id="create-wrap" class="reveal" style="--i:4" hidden></div>
+  </main>
+</div>
+<div id="dock" aria-hidden="true">
+  <button type="button" id="dock-cta" class="btn-primary" tabindex="-1" data-action="mirror-hero"><span id="dock-label">最初の一歩をつくる</span></button>
+</div>
+<div id="reward" class="reward" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true"></div>
+<div id="toasts" aria-live="polite"></div>
+<p id="save-error" class="save-error" role="alert" hidden>保存に失敗しました。容量や設定を確認して、もう一度試してください。</p>
+<div id="overlay"></div>
+<noscript>
+  <div class="noscript card">
+    <h2>little steps</h2>
+    <p>このアプリはJavaScriptで動きます。ブラウザの設定で有効にして、もう一度開いてください。</p>
+  </div>
+</noscript>
 <script>
 'use strict';
-
-/* ============ constants ============ */
-var TIMER_PRESETS = [5,15,25,30,40];
-var WIZARD_STEPS = [
-  {key:'specific',   eyebrow:'S', label:'Specific',    prompt:'何を達成したい?',                       hint:'できるだけ具体的に、一文で。',           color:'#6C5CE7', icon:'target'},
-  {key:'measurable', eyebrow:'M', label:'Measurable',  prompt:'終わったって、どうやってわかる?',       hint:'数字や状態で書けると迷わない。',         color:'#3D9BE9', icon:'ruler'},
-  {key:'subtasks',   eyebrow:'A', label:'Achievable',  prompt:'25分以内で終わる小さな一歩に分けよう',  hint:'3〜6個くらい。小さいほど始めやすい。',   color:'#FF7A59', icon:'listChecks'},
-  {key:'relevant',   eyebrow:'R', label:'Relevant',    prompt:'これが今の自分にとって大事な理由は?',   hint:'あとで気力が切れたときに読み返す用。',   color:'#FF6B9D', icon:'heart'},
-  {key:'timebound',  eyebrow:'T', label:'Time-bound',  prompt:'いつまでにやる?',                       hint:'締切がないと脳が優先度を見失う。',       color:'#2EC4B6', icon:'calendarClock'}
-];
+/* Completing a step patches only the affected row, progress, and header.
+   The goal list is not rebuilt, so focus, drafts, and open disclosures stay. */
 var STORAGE_KEY = 'little-steps-data';
-
-/* ============ tiny icon set ============ */
-var ICONS = {
-  plus:'<path d="M12 5v14M5 12h14"/>',
-  x:'<path d="M18 6 6 18M6 6l12 12"/>',
-  check:'<path d="m5 13 4 4L19 7"/>',
-  chevronLeft:'<path d="m15 18-6-6 6-6"/>',
-  chevronRight:'<path d="m9 18 6-6-6-6"/>',
-  arrowRight:'<path d="M5 12h14M13 5l7 7-7 7"/>',
-  play:'<path d="M8 5v14l11-7z"/>',
-  pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
-  flame:'<path d="M12 2.5c.6 3.2-2.6 4.3-2.6 7.6a2.6 2.6 0 0 0 5.2 0c0-.9-.4-1.4-.8-2.1.7 1.6-.3 2.6-1.2 2-.1-2.4 1.6-3.9-.6-7.5zM7.4 12.3A6.6 6.6 0 0 0 12 21a6.6 6.6 0 0 0 4.6-8.7 4.6 4.6 0 0 1-9.2 0z"/>',
-  sparkles:'<path d="M12 3l1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4zM19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7zM5 14l.6 2 2 .6-2 .6-.6 2-.6-2-2-.6 2-.6z"/>',
-  rotateCcw:'<path d="M4 4v6h6M20 13a8 8 0 1 1-2.6-6.9L20 10"/>',
-  trash2:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
-  rocket:'<path d="M12 2.2c2.6 2 4.3 5.4 4.3 9 0 1.7-.6 3.3-1.5 4.5l-2.8 3-2.8-3c-.9-1.2-1.5-2.8-1.5-4.5 0-3.6 1.7-7 4.3-9zM9.3 16.4 7 19.3l.7-3.4M14.7 16.4l2.3 2.9-.7-3.4M12 11a1.7 1.7 0 1 0 0-3.4A1.7 1.7 0 0 0 12 11z"/>',
-  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.4"/>',
-  ruler:'<rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v3M15 8v3"/>',
-  listChecks:'<path d="M4 6h1M8 6h12M4 12h1M8 12h12M4 18h1M8 18h12"/>',
-  heart:'<path d="M12 20.5s-7-4.2-9.3-8.4C.5 8.7 2.8 5.3 6.2 5.3c2 0 3.5 1.1 4 2 .5-.9 2-2 4-2 3.4 0 5.3 3.4 3.5 6.8C19 16.65 12 20.5 12 20.5z"/>',
-  calendarClock:'<rect x="3" y="5" width="14" height="16" rx="2"/><path d="M3 10h14M7 3v4"/><circle cx="17" cy="17" r="5"/><path d="M17 15v2l1.4 1"/>',
-  smartphone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
-  share2:'<circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="m8.1 10.7 7.8-4.4M8.1 13.3l7.8 4.4"/>',
-  moreVertical:'<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>'
-};
-var FILLED = {play:1, flame:1, sparkles:1, rocket:1, heart:1};
-function icon(name, opts){
-  opts = opts || {};
-  var size = opts.size || 24, color = opts.color || 'currentColor', sw = opts.strokeWidth || 2;
-  var filled = FILLED[name];
-  var extra = opts.extra || '';
-  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="'+(filled?color:'none')+'" stroke="'+(filled?'none':color)+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round" '+extra+'>'+(ICONS[name]||'')+'</svg>';
-}
-function esc(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-
-/* ============ state ============ */
+var TIMER_PRESETS = [5, 15, 25, 30, 40];
+var REWARDS = [
+  'その一歩、残った。',
+  '小さくても、前進。',
+  'できた、を記録した。',
+  '今日の自分に、一つ渡せた。',
+  'その大きさで、ちょうどいい。',
+  '完璧じゃなくていい。進んだ。'
+];
+var WIZARD_STEPS = [
+  { key: 'specific', eyebrow: 'S', label: 'Specific', prompt: '何を達成したい?', hint: 'できるだけ具体的に、一文で。書き始めた時点で、もう動き出している。', optional: false, max: 80, rows: 2 },
+  { key: 'measurable', eyebrow: 'M', label: 'Measurable', prompt: '終わったって、どうやってわかる?', hint: '数字や状態で書けると迷わない。', optional: false, max: 120, rows: 2 },
+  { key: 'subtasks', eyebrow: 'A', label: 'Achievable', prompt: '25分以内で終わる小さな一歩に分けよう', hint: '3〜6個が目安。一つでも始められる。', optional: false },
+  { key: 'relevant', eyebrow: 'R', label: 'Relevant', prompt: 'これが今の自分にとって大事な理由は?', hint: '空欄でも進める。気力が切れたときに読み返す。', optional: true, max: 180, rows: 3 },
+  { key: 'timebound', eyebrow: 'T', label: 'Time-bound', prompt: 'いつまでにやる?', hint: '合わなければ、変えていい。', optional: false }
+];
+var CHECK_SVG = '<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle class="check-disc" cx="16" cy="16" r="12"></circle><path class="check-mark" d="M10 16.6l4.1 4.1L22.5 12"></path></svg>';
 var state = loadState();
 var ui = {
-  wizardOpen:false, wizardStep:0, wizardData:blankWizard(),
-  activeTimer:null,          // {goalId, subId, seconds, total, running, done}
-  installGuideOpen:false,
-  pendingDelete:null,        // {goal, index, timer}
-  pendingGoalDone:null,      // {goalId, subId, title, timer}
-  celebrate:null,
-  pickingFor:null,           // subtask id currently choosing a timer duration
-  saveError:false
+  wizard: null, overlayKind: null, returnFocus: null, timer: null, timerId: null,
+  lock: false, justAnimated: null, focusHeroNext: false, swapTimer: null, lastAction: null, mirror: false,
+  rewardTimer: null, pendingDelete: null, deleteTimer: null, heroIO: null, resumed: false
 };
-var dragState = null;
-var timerInterval = null;
 
-function blankWizard(){ return {specific:'',measurable:'',subtasks:[],relevant:'',timebound:''}; }
-
-function loadState(){
-  try{
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ var parsed = JSON.parse(raw); return {goals:parsed.goals||[], streak:parsed.streak||{count:0,lastActiveDate:null}}; }
-  }catch(e){}
-  return {goals:[], streak:{count:0,lastActiveDate:null}};
-}
-function saveState(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); ui.saveError=false; }
-  catch(e){ ui.saveError=true; }
-}
-
-/* ============ helpers ============ */
-function uid(){ return Math.random().toString(36).slice(2,10); }
-function todayStr(){ return new Date().toISOString().slice(0,10); }
-function daysUntil(dateStr){
-  if(!dateStr) return null;
-  var d = new Date(dateStr+'T00:00:00'), now = new Date(); now.setHours(0,0,0,0);
-  return Math.ceil((d-now)/86400000);
-}
-function bumpStreak(streak){
-  var t = todayStr();
-  if(streak.lastActiveDate===t) return streak;
-  var y = new Date(); y.setDate(y.getDate()-1);
-  var wasYesterday = streak.lastActiveDate===y.toISOString().slice(0,10);
-  return {count: wasYesterday?streak.count+1:1, lastActiveDate:t};
-}
-function findGoal(id){ return state.goals.find(function(g){return g.id===id;}); }
-
-/* ============ actions ============ */
-function openWizard(){ ui.wizardOpen=true; ui.wizardStep=0; ui.wizardData=blankWizard(); render(); }
-function closeWizard(){ ui.wizardOpen=false; render(); }
-function wizardKey(){ return WIZARD_STEPS[ui.wizardStep].key; }
-function readWizardInputIntoState(){
-  var key = wizardKey();
-  if(key==='subtasks' || key==='timebound') return;
-  var el = document.getElementById('wizard-field');
-  if(el) ui.wizardData[key] = el.value;
-}
-function wizardBack(){
-  readWizardInputIntoState();
-  if(ui.wizardStep===0){ closeWizard(); return; }
-  ui.wizardStep--; render();
-}
-function wizardNext(){
-  readWizardInputIntoState();
-  var key = wizardKey();
-  if(key==='subtasks'){ if(ui.wizardData.subtasks.length===0) return; }
-  else if(key!=='relevant' && !ui.wizardData[key].trim()) return;
-
-  if(ui.wizardStep===WIZARD_STEPS.length-1){ finishWizard(); return; }
-  ui.wizardStep++; render();
-}
-function finishWizard(){
-  var goal = {
-    id: uid(),
-    title: ui.wizardData.specific.trim(),
-    measurable: ui.wizardData.measurable.trim(),
-    relevant: ui.wizardData.relevant.trim(),
-    deadline: ui.wizardData.timebound,
-    createdAt: todayStr(),
-    subtasks: ui.wizardData.subtasks.map(function(t){ return {id:uid(), text:t, done:false}; })
-  };
-  state.goals.unshift(goal);
-  saveState();
-  ui.wizardOpen=false;
-  render();
-}
-function addSubtaskDraft(){
-  var el = document.getElementById('sub-draft');
-  if(!el) return;
-  var v = el.value.trim();
-  if(!v) return;
-  ui.wizardData.subtasks.push(v);
-  el.value='';
-  render();
-  var again = document.getElementById('sub-draft');
-  if(again) again.focus();
-}
-function removeSubtaskDraft(i){ ui.wizardData.subtasks.splice(i,1); render(); }
-
-function toggleSubtask(goalId, subId, forceDone){
-  var goal = findGoal(goalId);
-  if(!goal) return;
-  var sub = goal.subtasks.find(function(s){return s.id===subId;});
-  if(!sub) return;
-  var wasAllDoneBefore = goal.subtasks.every(function(s){return s.done;});
-  var newDone = forceDone!==undefined ? forceDone : !sub.done;
-  var justCompleted = newDone===true && sub.done===false;
-  sub.done = newDone;
-  var isAllDoneNow = goal.subtasks.length>0 && goal.subtasks.every(function(s){return s.done;});
-  if(justCompleted){ state.streak = bumpStreak(state.streak); }
-  if(isAllDoneNow && !wasAllDoneBefore){
-    if(ui.pendingGoalDone && ui.pendingGoalDone.timer) clearTimeout(ui.pendingGoalDone.timer);
-    var pgd = {goalId:goalId, subId:subId, title:goal.title};
-    pgd.timer = setTimeout(function(){ ui.pendingGoalDone=null; render(); }, 8000);
-    ui.pendingGoalDone = pgd;
-  }
-  saveState();
-  render();
-}
-function undoGoalDone(){
-  if(!ui.pendingGoalDone) return;
-  var p = ui.pendingGoalDone;
-  if(p.timer) clearTimeout(p.timer);
-  ui.pendingGoalDone = null;
-  toggleSubtask(p.goalId, p.subId, false);
-}
-function dismissGoalDoneToast(){
-  if(ui.pendingGoalDone && ui.pendingGoalDone.timer) clearTimeout(ui.pendingGoalDone.timer);
-  ui.pendingGoalDone=null; render();
-}
-function reopenGoal(goalId){
-  var goal = findGoal(goalId);
-  if(!goal || goal.subtasks.length===0) return;
-  goal.subtasks[goal.subtasks.length-1].done=false;
-  saveState(); render();
-}
-function deleteGoal(goalId){
-  var idx = state.goals.findIndex(function(g){return g.id===goalId;});
-  if(idx===-1) return;
-  var goal = state.goals[idx];
-  state.goals.splice(idx,1);
-  if(ui.pendingDelete && ui.pendingDelete.timer) clearTimeout(ui.pendingDelete.timer);
-  var pd = {goal:goal, index:idx};
-  pd.timer = setTimeout(function(){ ui.pendingDelete=null; render(); }, 6000);
-  ui.pendingDelete = pd;
-  saveState(); render();
-}
-function undoDelete(){
-  if(!ui.pendingDelete) return;
-  var p = ui.pendingDelete;
-  if(p.timer) clearTimeout(p.timer);
-  state.goals.splice(Math.min(p.index, state.goals.length), 0, p.goal);
-  ui.pendingDelete=null;
-  saveState(); render();
-}
-function dismissDeleteToast(){
-  if(ui.pendingDelete && ui.pendingDelete.timer) clearTimeout(ui.pendingDelete.timer);
-  ui.pendingDelete=null; render();
-}
-
-function pickTimerFor(subId){ ui.pickingFor = ui.pickingFor===subId?null:subId; render(); }
-function startTimer(goalId, subId, minutes){
-  ui.pickingFor=null;
-  ui.activeTimer = {goalId:goalId, subId:subId, seconds:minutes*60, total:minutes*60, running:true, done:false};
-  render();
-  clearInterval(timerInterval);
-  timerInterval = setInterval(tickTimer, 1000);
-}
-function tickTimer(){
-  if(!ui.activeTimer || !ui.activeTimer.running) return;
-  ui.activeTimer.seconds--;
-  if(ui.activeTimer.seconds<=0){
-    ui.activeTimer.seconds=0; ui.activeTimer.running=false; ui.activeTimer.done=true;
-    clearInterval(timerInterval);
-    render();
-    return;
-  }
-  updateTimerDom();
-}
-function pauseResumeTimer(){
-  if(!ui.activeTimer) return;
-  ui.activeTimer.running = !ui.activeTimer.running;
-  render();
-}
-function cancelTimer(){ ui.activeTimer=null; clearInterval(timerInterval); render(); }
-function finishTimerMarkDone(){
-  if(ui.activeTimer){
-    var goal = findGoal(ui.activeTimer.goalId);
-    toggleSubtask(ui.activeTimer.goalId, ui.activeTimer.subId, true);
-    ui.celebrate = goal ? goal.title : '';
-    setTimeout(function(){ ui.celebrate=null; render(); }, 2200);
-  }
-  ui.activeTimer=null;
-  render();
-}
-function keepGoingTimer(){ ui.activeTimer=null; render(); }
-
-function openInstallGuide(){ ui.installGuideOpen=true; render(); }
-function closeInstallGuide(){ ui.installGuideOpen=false; render(); }
-
-/* ============ platform / standalone detection ============ */
-function isStandalone(){
-  try{ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; }
-  catch(e){ return false; }
-}
-function detectPlatform(){
-  var ua = navigator.userAgent || '';
-  if(/iPad|iPhone|iPod/.test(ua) || (ua.indexOf('Macintosh')>-1 && navigator.maxTouchPoints>1)) return 'ios';
-  if(/Android/.test(ua)) return 'android';
-  return 'other';
-}
-
-/* ============ render: pieces ============ */
-function renderHeader(){
-  var streak = state.streak.count>0;
-  var installBtn = isStandalone() ? '' :
-    '<button class="icon-btn" data-action="install-guide" aria-label="ホーム画面に追加">'+icon('smartphone',{size:16,color:'#6C5CE7'})+'</button>';
-  return ''+
-  '<header id="header"><div id="header-row">'+
-    '<div class="h-left">'+
-      '<div class="logo">'+icon('target',{size:18,color:'#fff',strokeWidth:2.5})+'</div>'+
-      '<span class="disp h-title">little steps</span>'+
-    '</div>'+
-    '<div class="h-right">'+
-      installBtn+
-      '<div class="streak-badge'+(streak?' on':'')+'">'+icon('flame',{size:16,color: streak?'#FF9F1C':'#9891C4'})+'<span class="mono streak-val">'+state.streak.count+'</span></div>'+
-    '</div>'+
-  '</div></header>';
-}
-
-function renderSlide(goalId, subId, accent){
-  return '<div class="slide-wrap"><div class="slide-track" data-slide-track data-goal="'+goalId+'" data-sub="'+subId+'" style="background:'+accent+'1F;border:1.5px solid '+accent+'40">'+
-    '<div class="slide-fill" data-slide-fill style="width:47px;background:'+accent+';opacity:.3"></div>'+
-    '<div class="slide-label" style="color:'+accent+'">スライドして完了</div>'+
-    '<div class="slide-handle" data-slide-handle style="width:44px;height:44px;border:2px solid '+accent+'">'+icon('chevronRight',{size:20,color:accent,strokeWidth:2.5})+'</div>'+
-  '</div></div>';
-}
-
-function renderGoalCard(goal){
-  var doneCount = goal.subtasks.filter(function(s){return s.done;}).length;
-  var total = goal.subtasks.length;
-  var nextIdx = goal.subtasks.findIndex(function(s){return !s.done;});
-  var remain = daysUntil(goal.deadline);
-  var metaPill = '';
-  if(remain!==null){
-    var cls = remain<0 ? 'late' : (remain<=3?'warn':'');
-    var txt = remain<0 ? (Math.abs(remain)+'日超過') : (remain===0?'今日が締切':('あと'+remain+'日'));
-    metaPill = '<span class="pill'+(cls?' '+cls:'')+'">'+txt+'</span>';
-  }
-  var rows = goal.subtasks.map(function(s,i){
-    if(s.done){
-      return '<div class="sub-row"><div class="sub-row-top">'+
-        '<div class="chk">'+icon('check',{size:13,color:'#fff',strokeWidth:3.5})+'</div>'+
-        '<span class="sub-text done">'+esc(s.text)+'</span>'+
-        '<button class="undo-mini" data-action="toggle-sub" data-goal="'+goal.id+'" data-sub="'+s.id+'">取り消す</button>'+
-      '</div></div>';
-    }
-    var isNext = i===nextIdx;
-    var picking = ui.pickingFor===s.id;
-    var timerRow = picking ? (
-      '<div class="timer-pick"><span>時間を選ぶ:</span>'+
-      TIMER_PRESETS.map(function(m){return '<button class="tp-btn" data-action="start-timer" data-goal="'+goal.id+'" data-sub="'+s.id+'" data-min="'+m+'">'+m+'分</button>';}).join('')+
-      '</div>'
-    ) : '';
-    return '<div class="sub-row'+(isNext?' active':'')+'">'+
-      '<div class="sub-row-top">'+
-        '<span class="sub-text">'+esc(s.text)+'</span>'+
-        '<button class="start-btn'+(isNext?' next':'')+'" data-action="pick-timer" data-sub="'+s.id+'">'+icon('play',{size:11})+' 開始</button>'+
-      '</div>'+
-      renderSlide(goal.id, s.id, isNext?'#FF7A59':'#B7B0DE')+
-      timerRow+
-    '</div>';
-  }).join('');
-  return '<div class="card">'+
-    '<div class="card-top"><h3 class="card-title disp">'+esc(goal.title)+'</h3>'+
-      '<button class="card-del" data-action="delete-goal" data-goal="'+goal.id+'" aria-label="目標を削除">'+icon('trash2',{size:15,color:'#B7B0DE'})+'</button>'+
-    '</div>'+
-    (goal.measurable ? '<p class="card-measurable">'+esc(goal.measurable)+'</p>' : '')+
-    '<div class="card-meta"><span>'+doneCount+'/'+total+' ステップ完了</span>'+metaPill+'</div>'+
-    rows+
-    (goal.relevant ? '<p class="card-quote">"'+esc(goal.relevant)+'"</p>' : '')+
-  '</div>';
-}
-
-function renderMain(){
-  if(state.goals.length===0){
-    return '<main><div class="empty">'+
-      '<div class="empty-icon">'+icon('rocket',{size:28,color:'#6C5CE7'})+'</div>'+
-      '<h1 class="disp">まだ目標がありません</h1>'+
-      '<p>大きな目標は脳がフリーズする。<br>ここでは一度に一つだけ聞くから、気楽にどうぞ。</p>'+
-      '<button class="btn-primary" data-action="open-wizard">'+icon('plus',{size:18})+' はじめる</button>'+
-    '</div></main>';
-  }
-  var active = state.goals.filter(function(g){ return g.subtasks.length===0 || g.subtasks.some(function(s){return !s.done;}); });
-  var done = state.goals.filter(function(g){ return g.subtasks.length>0 && g.subtasks.every(function(s){return s.done;}); });
-  var html = '<main><div class="goal-list">'+active.map(renderGoalCard).join('')+'</div>';
-  if(done.length){
-    html += '<div class="archive-head">'+icon('sparkles',{size:14,color:'#9891C4'})+' やり切った目標 ('+done.length+')</div>';
-    html += done.map(function(g){
-      return '<div class="archive-row">'+
-        '<div style="display:flex;align-items:center;gap:8px;min-width:0">'+icon('check',{size:16,color:'#2EC4B6'})+'<span class="archive-title">'+esc(g.title)+'</span></div>'+
-        '<div style="display:flex;align-items:center;gap:2px;flex-shrink:0">'+
-          '<button class="archive-btn" data-action="reopen-goal" data-goal="'+g.id+'">'+icon('rotateCcw',{size:13})+' 元に戻す</button>'+
-          '<button class="card-del" data-action="delete-goal" data-goal="'+g.id+'" aria-label="削除">'+icon('trash2',{size:14,color:'#4B7B75'})+'</button>'+
-        '</div>'+
-      '</div>';
-    }).join('');
-  }
-  html += '</main>';
-  return html;
-}
-
-function renderWizard(){
-  if(!ui.wizardOpen) return '';
-  var step = WIZARD_STEPS[ui.wizardStep];
-  var isLast = ui.wizardStep===WIZARD_STEPS.length-1;
-  var body='';
-  if(step.key==='subtasks'){
-    body = '<div class="sub-add-row"><input id="sub-draft" class="field-input" placeholder="例: 参考資料を1つ開く" autofocus>'+
-      '<button class="footer-next" style="background:'+step.color+'" data-action="add-sub">追加</button></div>'+
-      ui.wizardData.subtasks.map(function(t,i){
-        return '<div class="sub-chip"><span style="font-size:14px"><span class="mono" style="color:#9891C4;margin-right:8px">'+(i+1)+'</span>'+esc(t)+'</span>'+
-          '<button data-action="remove-sub" data-i="'+i+'">'+icon('x',{size:15,color:'#B7B0DE'})+'</button></div>';
-      }).join('');
-  } else if(step.key==='timebound'){
-    body = '<input id="wizard-field" type="date" class="field-input" value="'+esc(ui.wizardData.timebound)+'" autofocus>';
-  } else {
-    var isTextarea = step.key==='relevant';
-    var val = esc(ui.wizardData[step.key]);
-    body = isTextarea
-      ? '<textarea id="wizard-field" class="field-input" rows="3" placeholder="ここに入力…" autofocus>'+val+'</textarea>'
-      : '<textarea id="wizard-field" class="field-input" rows="2" placeholder="ここに入力…" autofocus>'+val+'</textarea>';
-  }
-  var canAdvanceNow = step.key==='subtasks' ? ui.wizardData.subtasks.length>0
-    : step.key==='relevant' ? true
-    : step.key==='timebound' ? !!ui.wizardData.timebound
-    : !!ui.wizardData[step.key].trim();
-
-  var guideBlock = '<div class="eyebrow-row"><span class="eyebrow" style="color:'+step.color+'">'+step.eyebrow+'</span>'+
-      '<span class="step-label">'+step.label+' · '+(ui.wizardStep+1)+'/'+WIZARD_STEPS.length+'</span></div>'+
-      '<h2 class="prompt">'+step.prompt+'</h2><p class="hint">'+step.hint+'</p>';
-
-  return '<div class="modal-overlay" id="wizard-overlay">'+
-    '<div class="modal-card" id="wizard-card">'+
-      '<button class="modal-close" data-action="close-wizard" aria-label="閉じる">'+icon('x',{size:17,color:'#B7B0DE'})+'</button>'+
-      '<div class="modal-body" id="wizard-scroll">'+
-        '<div class="dots">'+WIZARD_STEPS.map(function(s,i){return '<div class="dot" style="background:'+(i<=ui.wizardStep?s.color:'#EDEAFB')+'"></div>';}).join('')+'</div>'+
-        '<div class="guide" id="wizard-guide"><div class="guide-icon" style="background:'+step.color+'">'+icon(step.icon,{size:28,color:'#fff',strokeWidth:2.2})+'</div>'+guideBlock+'</div>'+
-        '<div id="wizard-compact" class="compact-row" style="display:none"><span class="eyebrow" style="background:#F6F4FF;color:'+step.color+'">'+step.eyebrow+'</span><h2 class="prompt">'+step.prompt+'</h2></div>'+
-        body+
-      '</div>'+
-      '<div class="modal-footer">'+
-        '<button class="footer-back" data-action="wizard-back">'+icon('chevronLeft',{size:16})+' '+(ui.wizardStep===0?'閉じる':'戻る')+'</button>'+
-        '<button class="footer-next" id="wizard-next-btn" style="background:'+(isLast?'#2EC4B6':step.color)+'" data-action="wizard-next" '+(canAdvanceNow?'':'disabled')+'>'+(isLast?'目標をつくる':'次へ')+' '+icon('arrowRight',{size:16,color:'#fff'})+'</button>'+
-      '</div>'+
-    '</div>'+
-  '</div>';
-}
-
-function renderTimer(){
-  var t = ui.activeTimer;
-  if(!t) return '';
-  var goal = findGoal(t.goalId);
-  var sub = goal && goal.subtasks.find(function(s){return s.id===t.subId;});
-  if(t.done){
-    return '<div class="modal-overlay timer"><div class="timer-inner">'+
-      '<div class="timer-done-icon">'+icon('check',{size:36,color:'#fff',strokeWidth:3})+'</div>'+
-      '<h2 class="timer-done-title">時間終了!</h2><p class="timer-done-sub">このステップ、完了にする?</p>'+
-      '<div class="timer-actions">'+
-        '<button class="tbtn cancel" data-action="timer-keep-going" style="display:flex;align-items:center;gap:8px">'+icon('rotateCcw',{size:15})+' まだ途中</button>'+
-        '<button class="tbtn pause" data-action="timer-finish">'+icon('check',{size:16})+' 完了にする</button>'+
-      '</div>'+
-    '</div></div>';
-  }
-  var mins = String(Math.floor(t.seconds/60)).padStart(2,'0');
-  var secs = String(t.seconds%60).padStart(2,'0');
-  var pct = 1 - t.seconds/t.total;
-  var circ = 2*Math.PI*45;
-  return '<div class="modal-overlay timer"><div class="timer-inner">'+
-    '<p class="timer-goal">'+esc(goal?goal.title:'')+'</p><p class="timer-sub">'+esc(sub?sub.text:'')+'</p>'+
-    '<div class="timer-ring"><svg width="224" height="224" viewBox="0 0 100 100" style="transform:rotate(-90deg)">'+
-      '<circle cx="50" cy="50" r="45" fill="none" stroke="#3A3660" stroke-width="6"/>'+
-      '<circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#FF7A59" stroke-width="6" stroke-dasharray="'+circ+'" stroke-dashoffset="'+(circ*(1-pct))+'" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear"/>'+
-    '</svg><div class="timer-time" id="timer-time">'+mins+':'+secs+'</div></div>'+
-    '<div class="timer-actions">'+
-      '<button class="tbtn cancel" data-action="timer-cancel">やめる</button>'+
-      '<button class="tbtn pause" data-action="timer-pause">'+(t.running?icon('pause',{size:16})+' 一時停止':icon('play',{size:16})+' 再開')+'</button>'+
-    '</div>'+
-  '</div></div>';
-}
-
-function renderInstallGuide(){
-  if(!ui.installGuideOpen) return '';
-  var platform = detectPlatform();
-  var steps = {
-    ios:[['share2','画面下(または上)の共有ボタンをタップ'],['plus','「ホーム画面に追加」を選ぶ'],['check','右上の「追加」をタップして完了']],
-    android:[['moreVertical','右上の「⋮」メニューを開く'],['plus','「ホーム画面に追加」または「アプリをインストール」を選ぶ'],['check','「追加」をタップして完了']],
-    other:[['share2','ブラウザのメニューを開く'],['plus','「ホーム画面に追加」に近い項目を探す'],['check','案内に沿って追加すれば完了']]
-  }[platform];
-  return '<div class="modal-overlay"><div class="modal-card">'+
-    '<button class="modal-close" data-action="close-install-guide">'+icon('x',{size:17,color:'#B7B0DE'})+'</button>'+
-    '<div class="modal-body">'+
-      '<div class="guide"><div class="guide-icon" style="background:#6C5CE7">'+icon('smartphone',{size:28,color:'#fff',strokeWidth:2.2})+'</div>'+
-        '<h2 class="prompt">ホーム画面に追加する</h2><p class="hint" style="max-width:260px">アイコンをタップするだけで開けるようになる。ブラウザを探す手間が、開始のハードルを一つ減らす。</p></div>'+
-      steps.map(function(s,i){ return '<div class="guide-step"><div class="guide-step-n">'+(i+1)+'</div><div class="guide-step-text">'+s[1]+'</div>'+icon(s[0],{size:16,color:'#9891C4'})+'</div>'; }).join('')+
-      (platform==='other' ? '<p style="font-size:12px;text-align:center;color:#B7B0DE;margin-top:8px">iPhoneのSafari、AndroidのChromeで開くと手順が自動で表示されます。</p>' : '')+
-      '<button class="guide-done-btn" data-action="close-install-guide">わかった</button>'+
-    '</div>'+
-  '</div></div>';
-}
-
-function renderToasts(){
-  var html='';
-  if(ui.pendingDelete){
-    html += '<div class="toast undo"><div class="toast-msg">'+icon('trash2',{size:16,color:'#B7B0DE'})+'<span>「'+esc(ui.pendingDelete.goal.title)+'」を削除しました</span></div>'+
-      '<div class="toast-actions"><button class="toast-undo-btn" data-action="undo-delete">'+icon('rotateCcw',{size:14})+' 元に戻す</button>'+
-      '<button class="toast-x" data-action="dismiss-delete-toast">'+icon('x',{size:15,color:'#726B9E'})+'</button></div></div>';
-  } else if(ui.pendingGoalDone){
-    html += '<div class="toast undo"><div class="toast-msg">'+icon('sparkles',{size:16,color:'#B7B0DE'})+'<span>「'+esc(ui.pendingGoalDone.title)+'」を達成しました!</span></div>'+
-      '<div class="toast-actions"><button class="toast-undo-btn" data-action="undo-goal-done">'+icon('rotateCcw',{size:14})+' 元に戻す</button>'+
-      '<button class="toast-x" data-action="dismiss-goal-done-toast">'+icon('x',{size:15,color:'#726B9E'})+'</button></div></div>';
-  }
-  if(ui.celebrate!==null){
-    html += '<div class="celebrate">'+icon('sparkles',{size:16,color:'#FFD166'})+'<span>「'+esc(ui.celebrate)+'」が一歩前進!</span></div>';
-  }
-  if(ui.saveError){
-    html += '<div class="save-error">保存に失敗しました。もう一度試してください。</div>';
-  }
-  return html;
-}
-
-/* ============ master render ============ */
-function render(){
-  var html = renderHeader() + renderMain() +
-    '<button id="fab" data-action="open-wizard">'+icon('plus',{size:20,strokeWidth:2.5})+' 目標をつくる</button>'+
-    renderWizard() + renderTimer() + renderInstallGuide() + renderToasts();
-  document.getElementById('app').innerHTML = html;
-  if(ui.wizardOpen) afterWizardRender();
-}
-
-function afterWizardRender(){
-  applyKeyboardCompactState();
-  var field = document.getElementById('wizard-field');
-  if(field){
-    field.addEventListener('input', function(){
-      var btn = document.getElementById('wizard-next-btn');
-      if(btn) btn.disabled = !field.value.trim();
-    });
-  }
-}
-
-/* Compact mode while the on-screen keyboard is up: hide the big guide
-   icon so the input + footer buttons never get pushed out of view. */
-var maxSeenHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-function applyKeyboardCompactState(){
-  var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  if(vh>maxSeenHeight) maxSeenHeight=vh;
-  var keyboardOpen = vh < maxSeenHeight*0.75;
-  var guide = document.getElementById('wizard-guide');
-  var compact = document.getElementById('wizard-compact');
-  var overlay = document.getElementById('wizard-overlay');
-  var card = document.getElementById('wizard-card');
-  if(overlay) overlay.style.height = vh+'px';
-  if(card) card.style.maxHeight = Math.round(vh*0.96)+'px';
-  if(guide && compact){
-    guide.style.display = keyboardOpen ? 'none' : 'flex';
-    compact.style.display = keyboardOpen ? 'flex' : 'none';
-  }
-}
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize', function(){ if(ui.wizardOpen) applyKeyboardCompactState(); });
-}
-
-/* ============ timer DOM micro-update (no full re-render, for smooth countdown) ============ */
-function updateTimerDom(){
-  var t = ui.activeTimer;
-  if(!t) return;
-  var timeEl = document.getElementById('timer-time');
-  var circleEl = document.getElementById('timer-circle');
-  if(timeEl){
-    var mins = String(Math.floor(t.seconds/60)).padStart(2,'0');
-    var secs = String(t.seconds%60).padStart(2,'0');
-    timeEl.textContent = mins+':'+secs;
-  }
-  if(circleEl){
-    var pct = 1 - t.seconds/t.total;
-    var circ = 2*Math.PI*45;
-    circleEl.setAttribute('stroke-dashoffset', circ*(1-pct));
-  }
-}
-
-/* ============ slide-to-complete drag ============ */
-function slideMetrics(track){
-  var handle = 44, pad = 3;
-  return {handle:handle, pad:pad, max: Math.max(0, track.offsetWidth-handle-pad*2)};
-}
-document.addEventListener('pointerdown', function(e){
-  var track = e.target.closest('[data-slide-track]');
-  if(!track) return;
-  var m = slideMetrics(track);
-  dragState = {
-    track:track, goalId:track.getAttribute('data-goal'), subId:track.getAttribute('data-sub'),
-    handle:track.querySelector('[data-slide-handle]'), fill:track.querySelector('[data-slide-fill]'),
-    x:0, max:m.max, handleSize:m.handle, pad:m.pad, completing:false
-  };
-  dragState.handle.classList.add('dragging');
-  try{ e.target.setPointerCapture(e.pointerId); }catch(err){}
-});
-document.addEventListener('pointermove', function(e){
-  if(!dragState || dragState.completing) return;
-  var rect = dragState.track.getBoundingClientRect();
-  var x = e.clientX - rect.left - dragState.pad - dragState.handleSize/2;
-  x = Math.max(0, Math.min(dragState.max, x));
-  dragState.x = x;
-  dragState.handle.style.transform = 'translateX('+x+'px)';
-  dragState.fill.style.width = (x+dragState.handleSize+dragState.pad)+'px';
-  var progress = dragState.max>0 ? x/dragState.max : 0;
-  dragState.fill.style.opacity = 0.3 + progress*0.4;
-});
-function endDrag(){
-  if(!dragState) return;
-  var d = dragState;
-  d.handle.classList.remove('dragging');
-  if(d.max>0 && d.x > d.max*0.72){
-    d.completing = true;
-    d.handle.style.transform = 'translateX('+d.max+'px)';
-    d.fill.style.width = (d.max+d.handleSize+d.pad)+'px';
-    var goalId=d.goalId, subId=d.subId;
-    dragState=null;
-    setTimeout(function(){ toggleSubtask(goalId, subId, true); }, 220);
-  } else {
-    d.handle.style.transform = 'translateX(0px)';
-    d.fill.style.width = (d.handleSize+d.pad)+'px';
-    dragState=null;
-  }
-}
-document.addEventListener('pointerup', endDrag);
-document.addEventListener('pointercancel', endDrag);
-
-/* ============ event delegation: clicks ============ */
-document.addEventListener('click', function(e){
-  var el = e.target.closest('[data-action]');
-  if(!el) return;
-  var action = el.getAttribute('data-action');
-  switch(action){
-    case 'open-wizard': openWizard(); break;
-    case 'close-wizard': closeWizard(); break;
-    case 'wizard-back': wizardBack(); break;
-    case 'wizard-next': wizardNext(); break;
-    case 'add-sub': addSubtaskDraft(); break;
-    case 'remove-sub': removeSubtaskDraft(parseInt(el.getAttribute('data-i'),10)); break;
-    case 'toggle-sub': toggleSubtask(el.getAttribute('data-goal'), el.getAttribute('data-sub')); break;
-    case 'pick-timer': pickTimerFor(el.getAttribute('data-sub')); break;
-    case 'start-timer': startTimer(el.getAttribute('data-goal'), el.getAttribute('data-sub'), parseInt(el.getAttribute('data-min'),10)); break;
-    case 'delete-goal': deleteGoal(el.getAttribute('data-goal')); break;
-    case 'undo-delete': undoDelete(); break;
-    case 'dismiss-delete-toast': dismissDeleteToast(); break;
-    case 'undo-goal-done': undoGoalDone(); break;
-    case 'dismiss-goal-done-toast': dismissGoalDoneToast(); break;
-    case 'reopen-goal': reopenGoal(el.getAttribute('data-goal')); break;
-    case 'timer-pause': pauseResumeTimer(); break;
-    case 'timer-cancel': cancelTimer(); break;
-    case 'timer-finish': finishTimerMarkDone(); break;
-    case 'timer-keep-going': keepGoingTimer(); break;
-    case 'install-guide': openInstallGuide(); break;
-    case 'close-install-guide': closeInstallGuide(); break;
-  }
-});
-document.addEventListener('keydown', function(e){
-  if(e.key==='Enter' && e.target && e.target.id==='sub-draft'){ e.preventDefault(); addSubtaskDraft(); }
-});
-
-/* ============ service worker ============ */
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
   });
 }
+function attrSel(attr, value) {
+  return '[' + attr + '="' + String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]';
+}
+function uid() { return 'id' + Math.random().toString(36).slice(2, 10); }
+function todayDate() {
+  var n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+function formatYMD(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function todayStr() { return formatYMD(todayDate()); }
+function shiftDays(n) {
+  var d = todayDate();
+  d.setDate(d.getDate() + n);
+  return formatYMD(d);
+}
+function daysUntil(dateStr) {
+  if (!dateStr || String(dateStr).split('-').length < 3) return null;
+  var p = String(dateStr).split('-');
+  var target = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  return Math.round((target.getTime() - todayDate().getTime()) / 86400000);
+}
+function formatJP(dateStr) {
+  var p = String(dateStr).split('-');
+  return Number(p[1]) + '月' + Number(p[2]) + '日';
+}
+function truncate(s, n) {
+  var chars = Array.from(String(s || ''));
+  return chars.length <= n ? chars.join('') : chars.slice(0, n).join('') + '…';
+}
+function prefersReduce() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
-/* ============ boot ============ */
-render();
+function loadState() {
+  var blank = { goals: [], streak: { count: 0, lastActiveDate: null, best: 0, previous: null }, lifetimeSteps: 0, focusGoalId: null };
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return blank;
+    var parsed = JSON.parse(raw);
+    var goals = Array.isArray(parsed.goals) ? parsed.goals.map(normalizeGoal) : [];
+    var s = parsed.streak || {};
+    var streak = {
+      count: Number(s.count) || 0,
+      lastActiveDate: s.lastActiveDate || null,
+      best: typeof s.best === 'number' ? s.best : (Number(s.count) || 0),
+      previous: s.previous && typeof s.previous === 'object' ? {
+        count: Number(s.previous.count) || 0,
+        lastActiveDate: s.previous.lastActiveDate || null,
+        best: Number(s.previous.best) || 0
+      } : null
+    };
+    var lifetime = parsed.lifetimeSteps;
+    if (typeof lifetime !== 'number' || !isFinite(lifetime)) {
+      lifetime = goals.reduce(function (n, g) { return n + g.subtasks.filter(function (sub) { return sub.done; }).length; }, 0);
+    }
+    return { goals: goals, streak: streak, lifetimeSteps: lifetime, focusGoalId: parsed.focusGoalId || null };
+  } catch (e) { return blank; }
+}
+function normalizeGoal(g) {
+  g = g || {};
+  return {
+    id: String(g.id || uid()),
+    title: String(g.title || ''),
+    measurable: String(g.measurable || ''),
+    relevant: String(g.relevant || ''),
+    deadline: g.deadline || '',
+    createdAt: g.createdAt || '',
+    note: typeof g.note === 'string' ? g.note : '',
+    subtasks: Array.isArray(g.subtasks) ? g.subtasks.map(function (s) {
+      s = s || {};
+      return { id: String(s.id || uid()), text: String(s.text || ''), done: !!s.done, completedAt: s.completedAt || null };
+    }) : []
+  };
+}
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      goals: state.goals,
+      streak: {
+        count: state.streak.count, lastActiveDate: state.streak.lastActiveDate,
+        best: state.streak.best, previous: state.streak.previous
+      },
+      lifetimeSteps: state.lifetimeSteps,
+      focusGoalId: state.focusGoalId
+    }));
+    if ($('save-error')) $('save-error').hidden = true;
+  } catch (e) {
+    if ($('save-error')) $('save-error').hidden = false;
+  }
+}
+function findGoal(id) { return state.goals.find(function (g) { return g.id === id; }); }
+function isActive(g) { return g.subtasks.some(function (s) { return !s.done; }); }
+function activeGoals() { return state.goals.filter(isActive); }
+function featuredGoal() {
+  var active = activeGoals();
+  if (!active.length) return null;
+  if (state.focusGoalId) {
+    var chosen = active.find(function (g) { return g.id === state.focusGoalId; });
+    if (chosen) return chosen;
+  }
+  return active[0];
+}
+function nextStep(goal) { return goal.subtasks.find(function (s) { return !s.done; }) || null; }
+function anyCompletedOn(day) {
+  return state.goals.some(function (g) {
+    return g.subtasks.some(function (s) { return s.done && s.completedAt === day; });
+  });
+}
+function streakIsLive() {
+  var last = state.streak.lastActiveDate;
+  return !!(last && state.streak.count && (last === todayStr() || last === shiftDays(-1)));
+}
+function previewResume() {
+  var last = state.streak.lastActiveDate;
+  var today = todayStr();
+  return !!(last && last !== today && last !== shiftDays(-1));
+}
+function applyDone(goal, sub, done) {
+  if (done === !!sub.done) return;
+  var today = todayStr();
+  if (done) {
+    var last = state.streak.lastActiveDate;
+    ui.resumed = !!(last && last !== today && last !== shiftDays(-1));
+    if (last !== today) {
+      state.streak.previous = { count: state.streak.count || 0, lastActiveDate: last, best: state.streak.best || 0 };
+      var continued = last === shiftDays(-1);
+      var count = continued ? (state.streak.count || 0) + 1 : 1;
+      state.streak.count = count;
+      state.streak.lastActiveDate = today;
+      state.streak.best = Math.max(state.streak.best || 0, count);
+    } else ui.resumed = false;
+    sub.done = true;
+    sub.completedAt = today;
+    state.lifetimeSteps += 1;
+  } else {
+    sub.done = false;
+    sub.completedAt = null;
+    state.lifetimeSteps = Math.max(0, (state.lifetimeSteps || 0) - 1);
+    ui.resumed = false;
+    if (!anyCompletedOn(today) && state.streak.previous && state.streak.lastActiveDate === today) {
+      var p = state.streak.previous;
+      state.streak.count = p.count || 0;
+      state.streak.lastActiveDate = p.lastActiveDate || null;
+      state.streak.best = p.best || 0;
+      state.streak.previous = null;
+    }
+  }
+  saveState();
+}
+function gradientCopy(done, total) {
+  var left = total - done;
+  if (total <= 0) return '';
+  if (done <= 0) return '最初の一歩からでいい';
+  if (left <= 0) return '一区切り';
+  if (left === 1) return 'あと1歩。もう見えてる';
+  if (left === 2) return 'あと2歩で一区切り';
+  if (done / total >= 0.6) return 'あと' + left + '歩。ゴールが見えてきた';
+  return 'あと' + left + '歩';
+}
+function rewardMessage(goal, resumed) {
+  var done = goal.subtasks.filter(function (s) { return s.done; }).length;
+  var left = goal.subtasks.length - done;
+  var line = resumed ? 'また戻ってきた。それだけで十分。' : REWARDS[Math.max(0, state.lifetimeSteps - 1) % REWARDS.length];
+  if (left <= 0) return line + ' この目標は、一区切り。';
+  if (left === 1) return line + ' あと1歩。';
+  if (left === 2) return line + ' あと2歩。';
+  return line;
+}
+function peekText(subs, heroId) {
+  var next = subs.find(function (s) { return s.id !== heroId && !s.done; });
+  if (next) return '次は「' + truncate(next.text, 18) + '」';
+  return subs.some(function (s) { return s.id !== heroId; }) ? '終わった一歩も、開くと見られる' : '';
+}
+function stepAria(sub) {
+  return sub.done ? ('「' + sub.text + '」の完了を取り消す') : ('「' + sub.text + '」を完了');
+}
+
+function stepRowHTML(goal, sub) {
+  var done = !!sub.done;
+  return '<li class="step' + (done ? ' is-done' : '') + '" data-step="' + esc(sub.id) + '">' +
+    '<button type="button" class="box' + (done ? ' is-done is-static' : '') + '" data-check data-action="' + (done ? 'undo-step' : 'complete') + '" data-goal="' + esc(goal.id) + '" data-sub="' + esc(sub.id) + '" aria-label="' + esc(stepAria(sub)) + '">' +
+      '<span class="check-pop">' + CHECK_SVG + '</span></button>' +
+    '<span class="step-label">' + esc(sub.text) + '</span></li>';
+}
+function featuredInner(goal, step) {
+  return '<p class="step-text">' + esc(step.text) + '</p>' +
+    '<button type="button" id="hero-cta" class="btn-primary" data-check data-action="complete" data-goal="' + esc(goal.id) + '" data-sub="' + esc(step.id) + '">' +
+      '<span class="check-pop">' + CHECK_SVG + '</span><span class="cta-label">この一歩を完了</span></button>' +
+    '<button type="button" class="linkish" data-action="toggle-presets" aria-expanded="false" aria-controls="presets">時間を決めて始める</button>' +
+    '<div id="presets" class="presets" hidden><p class="presets-label">何分にする?</p>' +
+      TIMER_PRESETS.map(function (m) {
+        return '<button type="button" class="chip" data-action="start-timer" data-goal="' + esc(goal.id) + '" data-sub="' + esc(step.id) + '" data-min="' + m + '">' + m + '分</button>';
+      }).join('') + '</div>';
+}
+function progressHTML(goal) {
+  var total = goal.subtasks.length || 1;
+  var done = goal.subtasks.filter(function (s) { return s.done; }).length;
+  var left = total - done;
+  var donePct = (done / total) * 100;
+  var nextPct = left > 0 ? (100 / total) : 0;
+  var caption = gradientCopy(done, total);
+  return '<div class="progress-block" data-progress-for="' + esc(goal.id) + '">' +
+    '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + done + '" aria-valuetext="' + esc(total + '歩中' + done + '歩。' + caption) + '">' +
+      '<span class="bar-next" style="left:' + donePct + '%;width:' + nextPct + '%"></span>' +
+      '<span class="bar-done" style="width:' + donePct + '%"></span></div>' +
+    '<p class="bar-caption">' + esc(caption) + '</p></div>';
+}
+function deadlineHTML(dateStr) {
+  if (!dateStr) return '';
+  var d = daysUntil(dateStr);
+  var text = '区切りは' + formatJP(dateStr);
+  if (d === 1) text = '区切りは明日';
+  else if (d === 0) text = '区切りは今日';
+  else if (d != null && d < 0) text = '区切りの日は過ぎている。続けても、手放してもいい';
+  return '<p class="deadline"><time datetime="' + esc(dateStr) + '">' + esc(text) + '</time></p>';
+}
+function todayFoldHTML(goal, heroId) {
+  var others = goal.subtasks.filter(function (s) { return s.id !== heroId; });
+  var left = others.filter(function (s) { return !s.done; }).length;
+  return '<details class="fold" id="today-fold"><summary>' +
+    '<span class="sum-text"><span class="sum-main">ほかの一歩</span><span class="sum-meta fold-count">' + (left ? ('ほか' + left) : '振り返れる') + '</span></span>' +
+    '<span class="chev" aria-hidden="true"></span><span class="peek">' + esc(peekText(goal.subtasks, heroId)) + '</span></summary>' +
+    '<ul class="steps">' + others.map(function (s) { return stepRowHTML(goal, s); }).join('') + '</ul></details>';
+}
+function noteHTML(goal) {
+  return '<label class="note-label"><span>自分へのメモ <span class="opt">任意</span></span>' +
+    '<textarea id="today-note" rows="2" maxlength="280" placeholder="未来の自分へ、一言だけ">' + esc(goal.note || '') + '</textarea></label>';
+}
+function emptyHTML() {
+  return '<div class="card empty"><p class="kicker">little steps</p>' +
+    '<h2>大きな目標は、いちばん小さい一歩にする。</h2>' +
+    '<p class="lead">一度に聞くのは、一つだけ。脳がフリーズしない大きさまで分ける。</p>' +
+    '<button type="button" id="hero-cta" class="btn-primary" data-action="open-wizard"><span class="cta-label">最初の一歩をつくる</span></button>' +
+    '<ol class="hints"><li>具体的に、一文で</li><li>終わったとわかる形に</li><li>25分で終わる大きさに</li></ol></div>';
+}
+function doneEmptyHTML() {
+  return '<div class="card empty"><p class="kicker">一区切り</p>' +
+    '<h2>いま動いている目標はない</h2>' +
+    '<p class="lead">ここまでの歩数は、残っている。次は、やりたくなったときでいい。</p>' +
+    '<button type="button" id="hero-cta" class="btn-primary" data-action="open-wizard"><span class="cta-label">新しい目標をつくる</span></button></div>';
+}
+function goalTodayHTML(goal) {
+  var step = nextStep(goal);
+  if (!step) return doneEmptyHTML();
+  var others = goal.subtasks.filter(function (s) { return s.id !== step.id; });
+  return '<article class="card" id="today-card" data-goal="' + esc(goal.id) + '">' +
+    '<p class="kicker">いちばん小さい一歩</p><h2 class="goal-title">' + esc(goal.title) + '</h2>' +
+    (goal.measurable ? '<p class="meta-line"><span>終わると</span>' + esc(goal.measurable) + '</p>' : '') +
+    deadlineHTML(goal.deadline) +
+    (goal.relevant ? '<p class="meta-line"><span>大事な理由</span>' + esc(goal.relevant) + '</p>' : '') +
+    '<div id="featured-step" data-step="' + esc(step.id) + '">' + featuredInner(goal, step) + '</div>' +
+    progressHTML(goal) +
+    (others.length ? todayFoldHTML(goal, step.id) : '') +
+    noteHTML(goal) +
+    '<button type="button" class="linkish release" data-action="delete-goal" data-goal="' + esc(goal.id) + '">この目標を手放す</button></article>';
+}
+function otherGoalHTML(goal) {
+  var step = nextStep(goal);
+  var left = goal.subtasks.filter(function (s) { return !s.done; }).length;
+  var total = goal.subtasks.length || 1;
+  var done = total - left;
+  var donePct = (done / total) * 100;
+  var nextPct = left > 0 ? (100 / total) : 0;
+  return '<details class="fold" data-goal-fold="' + esc(goal.id) + '" data-progress-for="' + esc(goal.id) + '"><summary>' +
+    '<span class="sum-text"><span class="sum-main">' + esc(goal.title) + '</span><span class="sum-meta">' + (left ? ('あと' + left + '歩') : '一区切り') + '</span></span>' +
+    '<span class="chev" aria-hidden="true"></span><span class="peek">' + (step ? esc('次は「' + truncate(step.text, 18) + '」') : '') + '</span></summary>' +
+    '<div class="fold-body">' +
+      (goal.relevant ? '<p class="meta-line"><span>大事な理由</span>' + esc(goal.relevant) + '</p>' : '') +
+      '<button type="button" class="linkish" data-action="make-focus" data-goal="' + esc(goal.id) + '">今日の一歩にする</button>' +
+      '<button type="button" class="linkish release" data-action="delete-goal" data-goal="' + esc(goal.id) + '">この目標を手放す</button>' +
+      '<div class="bar mini" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + done + '" aria-label="' + esc(goal.title) + '">' +
+        '<span class="bar-next" style="left:' + donePct + '%;width:' + nextPct + '%"></span>' +
+        '<span class="bar-done" style="width:' + donePct + '%"></span></div>' +
+      '<ul class="steps">' + goal.subtasks.map(function (s) { return stepRowHTML(goal, s); }).join('') + '</ul></div></details>';
+}
+function archiveItemHTML(goal) {
+  return '<li class="archive-item" data-archive="' + esc(goal.id) + '"><span class="archive-title">' + esc(goal.title) + '</span>' +
+    '<button type="button" class="mini-btn" data-action="reopen" data-goal="' + esc(goal.id) + '">再開する</button>' +
+    '<button type="button" class="mini-btn" data-action="delete-goal" data-goal="' + esc(goal.id) + '" aria-label="' + esc('「' + goal.title + '」を削除') + '">削除</button></li>';
+}
+function historyHTML() {
+  return '<details class="fold history"><summary><span class="sum-text"><span class="sum-main">記録</span><span class="sum-meta" id="hist-meta"></span></span><span class="chev" aria-hidden="true"></span></summary>' +
+    '<dl class="hist"><div><dt>これまでの一歩</dt><dd id="hist-steps">0</dd></div>' +
+    '<div><dt>連続</dt><dd id="hist-now"></dd></div>' +
+    '<div><dt>いちばん長く続いた日数</dt><dd id="hist-best"></dd></div></dl>' +
+    '<p class="hist-note">休んでも、ここまでの歩数は残る。また始める日は、いつでもいい。</p></details>';
+}
+
+function revealSection(el) {
+  el.hidden = false;
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.removeProperty('animation');
+}
+function renderToday() {
+  $('today').innerHTML = (function () {
+    var goal = featuredGoal();
+    if (goal) return goalTodayHTML(goal);
+    if (state.goals.some(function (g) { return g.subtasks.length && g.subtasks.every(function (s) { return s.done; }); })) return doneEmptyHTML();
+    return emptyHTML();
+  })();
+}
+function renderOthers() {
+  var section = $('others');
+  var featured = featuredGoal();
+  var others = activeGoals().filter(function (g) { return !featured || g.id !== featured.id; });
+  if (!others.length) { section.hidden = true; section.innerHTML = ''; return; }
+  var wasHidden = section.hidden;
+  section.innerHTML = '<h2 class="section-label">ほかの目標</h2><div id="other-list">' + others.map(otherGoalHTML).join('') + '</div>';
+  if (wasHidden) revealSection(section); else section.hidden = false;
+}
+function renderArchive() {
+  var section = $('archive');
+  var done = state.goals.filter(function (g) { return g.subtasks.length && g.subtasks.every(function (s) { return s.done; }); });
+  if (!done.length) { section.hidden = true; section.innerHTML = ''; return; }
+  var open = $('archive-fold') && $('archive-fold').open;
+  var wasHidden = section.hidden;
+  section.innerHTML = '<details class="fold" id="archive-fold"' + (open ? ' open' : '') + '><summary>' +
+    '<span class="sum-text"><span class="sum-main">やり切った目標</span><span class="sum-meta" id="archive-count">' + done.length + '</span></span>' +
+    '<span class="chev" aria-hidden="true"></span></summary><ul id="archive-list" class="archive-list">' +
+    done.map(archiveItemHTML).join('') + '</ul></details>';
+  if (wasHidden) revealSection(section); else section.hidden = false;
+}
+function renderHistory() {
+  var el = $('history');
+  if (!el.innerHTML) el.innerHTML = historyHTML();
+  updateHistoryVisibility();
+}
+function updateHistoryVisibility() {
+  var el = $('history');
+  var show = state.lifetimeSteps > 0 || state.goals.length > 0;
+  if (show && el.hidden) {
+    if (!el.innerHTML) el.innerHTML = historyHTML();
+    revealSection(el);
+  } else if (!show) el.hidden = true;
+  patchHeader();
+}
+function renderCreate() {
+  var el = $('create-wrap');
+  if (!featuredGoal()) { el.hidden = true; return; }
+  if (!el.querySelector('[data-action="open-wizard"]')) {
+    el.innerHTML = '<button type="button" class="linkish create-link" data-action="open-wizard">別の目標を追加</button>';
+  }
+  if (el.hidden) revealSection(el);
+}
+function patchHeader() {
+  var wrap = $('stat-steps-wrap');
+  var steps = $('stat-steps');
+  var streak = $('stat-streak');
+  steps.textContent = String(state.lifetimeSteps);
+  wrap.hidden = state.lifetimeSteps <= 0;
+  var live = streakIsLive();
+  if (live) {
+    streak.hidden = false;
+    streak.textContent = state.streak.count + '日';
+    streak.setAttribute('aria-label', state.streak.count + '日続いている');
+    streak.classList.add('is-live');
+  } else if (state.lifetimeSteps > 0) {
+    streak.hidden = false;
+    streak.textContent = '休み中';
+    streak.setAttribute('aria-label', '休み中。戻る日はいつでもいい');
+    streak.classList.remove('is-live');
+  } else { streak.hidden = true; streak.textContent = ''; streak.removeAttribute('aria-label'); streak.classList.remove('is-live'); }
+  var hs = $('hist-steps'); if (hs) hs.textContent = String(state.lifetimeSteps);
+  var hn = $('hist-now');
+  if (hn) hn.textContent = live ? (state.streak.count + '日続いている') : (state.lifetimeSteps > 0 ? '休み中。戻る日はいつでもいい' : 'まだここから');
+  var hb = $('hist-best'); if (hb) hb.textContent = state.streak.best > 0 ? (state.streak.best + '日') : 'まだ';
+  var hm = $('hist-meta'); if (hm) hm.textContent = state.lifetimeSteps > 0 ? (state.lifetimeSteps + '歩') : '';
+}
+function patchProgress(goal) {
+  var total = goal.subtasks.length || 1;
+  var done = goal.subtasks.filter(function (s) { return s.done; }).length;
+  var left = total - done;
+  var donePct = (done / total) * 100;
+  var nextPct = left > 0 ? (100 / total) : 0;
+  var caption = gradientCopy(done, total);
+  document.querySelectorAll(attrSel('data-progress-for', goal.id)).forEach(function (block) {
+    var bar = block.querySelector('.bar');
+    var doneEl = block.querySelector('.bar-done');
+    var nextEl = block.querySelector('.bar-next');
+    var cap = block.querySelector('.bar-caption');
+    var meta = block.querySelector('.sum-meta');
+    if (doneEl) doneEl.style.width = donePct + '%';
+    if (nextEl) { nextEl.style.left = donePct + '%'; nextEl.style.width = nextPct + '%'; }
+    if (cap) cap.textContent = caption;
+    if (meta && !meta.classList.contains('fold-count')) meta.textContent = left ? ('あと' + left + '歩') : '一区切り';
+    if (bar) {
+      bar.setAttribute('aria-valuemax', String(total));
+      bar.setAttribute('aria-valuenow', String(done));
+      bar.setAttribute('aria-valuetext', total + '歩中' + done + '歩。' + caption);
+    }
+  });
+}
+function syncDoneRow(li, sub) {
+  var btn = li.querySelector('[data-check]');
+  if (!btn) return;
+  if (btn === ui.justAnimated) {
+    btn.setAttribute('data-action', sub.done ? 'undo-step' : 'complete');
+    btn.setAttribute('aria-label', stepAria(sub));
+    return;
+  }
+  li.classList.toggle('is-done', !!sub.done);
+  btn.classList.toggle('is-done', !!sub.done);
+  btn.classList.toggle('is-static', !!sub.done);
+  btn.setAttribute('data-action', sub.done ? 'undo-step' : 'complete');
+  btn.setAttribute('aria-label', stepAria(sub));
+}
+function syncTodayFoldMeta(goal, heroId) {
+  var countEl = document.querySelector('#today-fold .fold-count');
+  var peekEl = document.querySelector('#today-fold .peek');
+  if (!heroId) return;
+  var others = goal.subtasks.filter(function (s) { return s.id !== heroId; });
+  var left = others.filter(function (s) { return !s.done; }).length;
+  if (countEl) countEl.textContent = left ? ('ほか' + left) : '振り返れる';
+  if (peekEl) peekEl.textContent = peekText(goal.subtasks, heroId);
+}
+function ensureTodayFold(goal, heroId) {
+  var others = goal.subtasks.filter(function (s) { return s.id !== heroId; });
+  var fold = $('today-fold');
+  if (!others.length) { if (fold) fold.remove(); return; }
+  if (!fold) {
+    var html = todayFoldHTML(goal, heroId);
+    var note = document.querySelector('#today-card .note-label');
+    if (note) note.insertAdjacentHTML('beforebegin', html);
+    else $('today-card').insertAdjacentHTML('beforeend', html);
+    return;
+  }
+  var list = fold.querySelector('.steps');
+  var ids = {};
+  others.forEach(function (s, i) {
+    ids[s.id] = true;
+    var li = list.querySelector(attrSel('data-step', s.id));
+    if (!li) {
+      var holder = document.createElement('template');
+      holder.innerHTML = stepRowHTML(goal, s);
+      list.insertBefore(holder.content.firstElementChild, list.children[i] || null);
+    } else {
+      if (list.children[i] !== li) list.insertBefore(li, list.children[i] || null);
+      syncDoneRow(li, s);
+    }
+  });
+  Array.prototype.slice.call(list.children).forEach(function (li) {
+    if (!ids[li.getAttribute('data-step')]) li.remove();
+  });
+  syncTodayFoldMeta(goal, heroId);
+}
+function syncOtherPeek(goal) {
+  var root = document.querySelector(attrSel('data-goal-fold', goal.id));
+  if (!root) return;
+  var peek = root.querySelector('.peek');
+  var n = nextStep(goal);
+  if (peek) peek.textContent = n ? ('次は「' + truncate(n.text, 18) + '」') : '';
+  var list = root.querySelector('.steps');
+  if (!list) return;
+  goal.subtasks.forEach(function (s) {
+    var li = list.querySelector(attrSel('data-step', s.id));
+    if (li) syncDoneRow(li, s);
+  });
+}
+function restoreFocusIfNeeded(before) {
+  if (ui.overlayKind) return;
+  var active = document.activeElement;
+  if (active && active !== document.body && active.isConnected) return;
+  if (before && before.isConnected && (before.tagName === 'TEXTAREA' || before.tagName === 'INPUT')) {
+    var start = before.selectionStart, end = before.selectionEnd;
+    before.focus();
+    try { before.setSelectionRange(start, end); } catch (e) {}
+    return;
+  }
+  if (ui.focusHeroNext) {
+    var hero = $('hero-cta');
+    if (hero) hero.focus();
+  }
+}
+function reconcileFeatured(goal) {
+  var next = nextStep(goal);
+  var host = $('featured-step');
+  if (!next) { finishGoal(goal); return; }
+  if (host && host.getAttribute('data-step') !== next.id) {
+    host.setAttribute('data-step', next.id);
+    host.innerHTML = featuredInner(goal, next);
+    host.classList.remove('step-enter');
+    void host.offsetWidth;
+    host.classList.add('step-enter');
+    ensureTodayFold(goal, next.id);
+    observeHero();
+  } else {
+    ensureTodayFold(goal, next.id);
+  }
+  patchProgress(goal);
+}
+function finishGoal(goal) {
+  if (state.focusGoalId === goal.id) { state.focusGoalId = null; saveState(); }
+  var card = $('today-card');
+  var wasToday = !!(card && card.getAttribute('data-goal') === goal.id);
+  if (wasToday || !featuredGoal() || featuredGoal().id === goal.id) renderToday();
+  upsertArchive(goal);
+  renderOthers();
+  renderCreate();
+  updateHistoryVisibility();
+  observeHero();
+}
+function reconcileOther(goal) {
+  if (!isActive(goal)) { finishGoal(goal); return; }
+  syncOtherPeek(goal);
+  patchProgress(goal);
+}
+function routeReconcile(goalId) {
+  var goal = findGoal(goalId);
+  if (!goal) return;
+  var featured = featuredGoal();
+  if (featured && featured.id === goal.id) reconcileFeatured(goal);
+  else reconcileOther(goal);
+}
+function upsertArchive(goal) {
+  if (isActive(goal)) return;
+  var section = $('archive');
+  var list = $('archive-list');
+  if (!list) { renderArchive(); return; }
+  if (!list.querySelector(attrSel('data-archive', goal.id))) list.insertAdjacentHTML('afterbegin', archiveItemHTML(goal));
+  var count = $('archive-count');
+  if (count) count.textContent = String(list.children.length);
+  if (section.hidden) revealSection(section);
+}
+function markRow(subId) {
+  document.querySelectorAll(attrSel('data-step', subId)).forEach(function (li) {
+    li.classList.add('is-done');
+    var b = li.querySelector('[data-check]');
+    if (!b) return;
+    b.classList.add('is-done');
+    b.classList.remove('is-static');
+    b.setAttribute('data-action', 'undo-step');
+  });
+}
+function completeStep(goalId, subId, source) {
+  if (ui.lock) return;
+  var goal = findGoal(goalId);
+  var sub = goal && goal.subtasks.find(function (s) { return s.id === subId; });
+  if (!goal || !sub || sub.done) return;
+  ui.lock = true;
+  ui.focusHeroNext = !!(source && source.id === 'hero-cta' && !ui.mirror);
+  var btn = source && source.closest ? source.closest('[data-check]') : null;
+  if (btn) {
+    btn.classList.add('is-done');
+    btn.classList.remove('is-static');
+    ui.justAnimated = btn;
+  }
+  var hero = $('hero-cta');
+  if (hero && hero.getAttribute('data-sub') === subId && hero !== btn) {
+    hero.classList.add('is-done');
+    if (!ui.justAnimated) ui.justAnimated = hero;
+  }
+  var resumed = previewResume();
+  applyDone(goal, sub, true);
+  ui.lastAction = { goalId: goalId, subId: subId };
+  showReward(rewardMessage(goal, resumed), true);
+  patchHeader();
+  patchProgress(goal);
+  var host = $('featured-step');
+  var heroShown = host && host.getAttribute('data-step') === subId;
+  if (!heroShown) {
+    markRow(subId);
+    if (host && goal.id === ( $('today-card') && $('today-card').getAttribute('data-goal') )) syncTodayFoldMeta(goal, host.getAttribute('data-step'));
+    syncOtherPeek(goal);
+  }
+  clearTimeout(ui.swapTimer);
+  ui.swapTimer = window.setTimeout(function () {
+    var before = document.activeElement;
+    try {
+      if (ui.justAnimated && ui.justAnimated.isConnected) ui.justAnimated.classList.add('is-static');
+      ui.justAnimated = null;
+      routeReconcile(goalId);
+      restoreFocusIfNeeded(before);
+    } finally {
+      ui.lock = false;
+      ui.focusHeroNext = false;
+    }
+  }, 280);
+}
+function undoStep(goalId, subId) {
+  clearTimeout(ui.swapTimer);
+  ui.lock = false;
+  ui.justAnimated = null;
+  ui.focusHeroNext = false;
+  var goal = findGoal(goalId);
+  var sub = goal && goal.subtasks.find(function (s) { return s.id === subId; });
+  if (!goal || !sub || !sub.done) return;
+  var before = document.activeElement;
+  applyDone(goal, sub, false);
+  ui.lastAction = null;
+  hideReward();
+  patchHeader();
+  patchProgress(goal);
+  var featured = featuredGoal();
+  if (featured && featured.id === goal.id) reconcileFeatured(goal);
+  else reconcileOther(goal);
+  if ($('today-card') && $('today-card').getAttribute('data-goal') === goal.id && !$('featured-step')) renderToday();
+  restoreFocusIfNeeded(before);
+  showReward('一つ戻した。', false, true);
+  observeHero();
+}
+
+function showReward(text, withUndo, quiet) {
+  var el = $('reward');
+  var badge = quiet ? '' : '<span class="box is-done reward-badge"><span class="check-pop">' + CHECK_SVG + '</span></span>';
+  el.innerHTML = '<div class="reward-card">' + badge + '<p>' + esc(text) + '</p>' +
+    (withUndo ? '<button type="button" class="reward-undo" data-action="undo-last">取り消す</button>' : '') + '</div>';
+  el.setAttribute('aria-hidden', 'false');
+  el.classList.remove('is-in');
+  void el.offsetWidth;
+  el.classList.add('is-in');
+  clearTimeout(ui.rewardTimer);
+  ui.rewardTimer = setTimeout(function hideLater() {
+    if (el.contains(document.activeElement)) { ui.rewardTimer = setTimeout(hideLater, 2000); return; }
+    hideReward();
+  }, 6400);
+}
+function hideReward() {
+  clearTimeout(ui.rewardTimer);
+  var el = $('reward');
+  if (!el) return;
+  el.classList.remove('is-in');
+  el.innerHTML = '';
+  el.setAttribute('aria-hidden', 'true');
+}
+function showDeleteToast(goal) {
+  $('toasts').innerHTML = '<div class="toast"><p>「' + esc(truncate(goal.title, 18)) + '」を削除した</p><button type="button" data-action="undo-delete">元に戻す</button></div>';
+  clearTimeout(ui.deleteTimer);
+  ui.deleteTimer = setTimeout(function () { $('toasts').innerHTML = ''; ui.pendingDelete = null; }, 6400);
+}
+function deleteGoal(id) {
+  var idx = state.goals.findIndex(function (g) { return g.id === id; });
+  if (idx < 0) return;
+  var goal = state.goals[idx];
+  var wasFeatured = featuredGoal() && featuredGoal().id === id;
+  state.goals.splice(idx, 1);
+  if (state.focusGoalId === id) state.focusGoalId = null;
+  saveState();
+  if (ui.timer && ui.timer.goalId === id) cancelTimer();
+  ui.pendingDelete = { goal: goal, index: idx };
+  showDeleteToast(goal);
+  if (wasFeatured) {
+    renderToday(); renderOthers(); renderArchive(); renderCreate();
+  } else {
+    var node = document.querySelector(attrSel('data-goal-fold', id)) || document.querySelector(attrSel('data-archive', id));
+    if (node) node.remove();
+    var list = $('other-list');
+    if (list && !list.children.length) $('others').hidden = true;
+    var alist = $('archive-list');
+    if (alist && !alist.children.length) $('archive').hidden = true;
+    var count = $('archive-count');
+    if (count && alist) count.textContent = String(alist.children.length);
+  }
+  updateHistoryVisibility();
+  observeHero();
+}
+function undoDelete() {
+  var pending = ui.pendingDelete;
+  if (!pending) return;
+  clearTimeout(ui.deleteTimer);
+  state.goals.splice(Math.min(pending.index, state.goals.length), 0, pending.goal);
+  saveState();
+  ui.pendingDelete = null;
+  $('toasts').innerHTML = '';
+  renderToday(); renderOthers(); renderArchive(); renderCreate();
+  updateHistoryVisibility();
+  observeHero();
+}
+function makeFocus(goalId) {
+  state.focusGoalId = goalId;
+  saveState();
+  renderToday(); renderOthers(); renderCreate();
+  observeHero();
+  var reduce = prefersReduce();
+  $('today').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+}
+function reopenGoal(id) {
+  var goal = findGoal(id);
+  if (!goal || !goal.subtasks.length) return;
+  var last = goal.subtasks[goal.subtasks.length - 1];
+  if (!last.done) return;
+  applyDone(goal, last, false);
+  renderToday(); renderOthers(); renderArchive(); renderCreate();
+  updateHistoryVisibility();
+  observeHero();
+}
+
+function blankWizard() {
+  return { specific: '', measurable: '', subtasks: [], relevant: '', timebound: shiftDays(14) };
+}
+function openWizard() {
+  ui.wizard = { step: 0, data: blankWizard() };
+  ui.returnFocus = document.activeElement;
+  ui.overlayKind = 'wizard';
+  document.body.classList.add('modal-open');
+  paintWizard();
+  syncDock();
+}
+function paintWizard() {
+  $('overlay').innerHTML = wizardHTML();
+  var field = $('wizard-field') || $('sub-draft');
+  if (field) field.focus();
+  updateWizardNext();
+  applyKeyboardCompact();
+}
+function wizardHTML() {
+  var step = WIZARD_STEPS[ui.wizard.step];
+  var left = WIZARD_STEPS.length - ui.wizard.step - 1;
+  var dots = WIZARD_STEPS.map(function (_, i) {
+    return '<div class="dot' + (i <= ui.wizard.step ? ' is-on' : '') + '"></div>';
+  }).join('');
+  var field = '';
+  if (step.key === 'subtasks') {
+    field = '<div class="sub-add"><input id="sub-draft" type="text" maxlength="80" placeholder="例: 参考資料を1つ開く" aria-label="小さな一歩">' +
+      '<button type="button" class="btn-secondary" data-action="add-sub">追加</button></div>' +
+      '<p class="sub-count" id="sub-count"></p><ul id="sub-list">' +
+      ui.wizard.data.subtasks.map(function (t, i) { return chipHTML(t, i); }).join('') + '</ul>';
+  } else if (step.key === 'timebound') {
+    field = '<input id="wizard-field" type="date" aria-labelledby="wizard-prompt" value="' + esc(ui.wizard.data.timebound) + '">';
+  } else {
+    field = '<textarea id="wizard-field" rows="' + step.rows + '" maxlength="' + step.max + '" aria-labelledby="wizard-prompt" placeholder="ここに入力">' + esc(ui.wizard.data[step.key]) + '</textarea>';
+  }
+  return '<div class="overlay" id="wizard-overlay"><div class="modal-card" id="wizard-card" role="dialog" aria-modal="true" aria-labelledby="wizard-prompt">' +
+    '<button type="button" class="modal-close" data-action="close-overlay" aria-label="閉じる">×</button>' +
+    '<div class="modal-body"><div class="dots" role="progressbar" aria-valuemin="1" aria-valuemax="' + WIZARD_STEPS.length + '" aria-valuenow="' + (ui.wizard.step + 1) + '" aria-valuetext="' + (ui.wizard.step + 1) + '問目、全' + WIZARD_STEPS.length + '問">' + dots + '</div>' +
+    '<p class="wizard-left">' + (left === 0 ? 'これで目標になる' : ('あと' + left + '問')) + '</p>' +
+    '<div id="wizard-guide"><div class="guide-icon" aria-hidden="true">' + step.eyebrow + '</div></div>' +
+    '<p class="eyebrow">' + step.eyebrow + ' · ' + step.label + ' · ' + (ui.wizard.step + 1) + '/' + WIZARD_STEPS.length + '</p>' +
+    '<h2 id="wizard-prompt">' + step.prompt + '</h2><p class="hint" id="wizard-hint">' + step.hint + '</p>' + field + '</div>' +
+    '<div class="modal-footer"><button type="button" class="footer-back" data-action="wizard-back">' + (ui.wizard.step === 0 ? '閉じる' : '戻る') + '</button>' +
+    '<button type="button" class="btn-primary" id="wizard-next" data-action="wizard-next"><span class="cta-label">次へ</span></button></div></div></div>';
+}
+function chipHTML(text, i) {
+  return '<li class="chip-row"><span class="chip-n">' + (i + 1) + '</span><span class="chip-t">' + esc(text) + '</span>' +
+    '<button type="button" class="mini-btn" data-action="remove-sub" data-i="' + i + '" aria-label="' + esc('「' + text + '」を消す') + '">削除</button></li>';
+}
+function readWizardField() {
+  if (!ui.wizard) return;
+  var step = WIZARD_STEPS[ui.wizard.step];
+  if (!step || step.key === 'subtasks') return;
+  var el = $('wizard-field');
+  if (el) ui.wizard.data[step.key] = el.value;
+}
+function updateWizardNext() {
+  var btn = $('wizard-next');
+  if (!btn || !ui.wizard) return;
+  var step = WIZARD_STEPS[ui.wizard.step];
+  var label = btn.querySelector('.cta-label');
+  var ok = true;
+  var text = '次へ';
+  if (step.key === 'subtasks') {
+    var draft = $('sub-draft');
+    ok = ui.wizard.data.subtasks.length > 0 || !!(draft && draft.value.trim());
+    var count = $('sub-count');
+    if (count) {
+      var n = ui.wizard.data.subtasks.length;
+      count.textContent = n ? (n + 'つの一歩。最初に見えるのは、一つだけ。') : '';
+    }
+  } else if (step.optional) {
+    var rel = $('wizard-field');
+    text = rel && rel.value.trim() ? '次へ' : 'スキップ';
+  } else {
+    var field = $('wizard-field');
+    ok = !!(field && String(field.value).trim());
+  }
+  if (ui.wizard.step === WIZARD_STEPS.length - 1) text = 'この一歩から始める';
+  if (label) label.textContent = text;
+  btn.disabled = !ok;
+}
+function addSubtaskDraft() {
+  var input = $('sub-draft');
+  if (!input) return;
+  var value = input.value.trim();
+  if (!value) return;
+  ui.wizard.data.subtasks.push(value);
+  input.value = '';
+  var list = $('sub-list');
+  if (list) list.insertAdjacentHTML('beforeend', chipHTML(value, ui.wizard.data.subtasks.length - 1));
+  updateWizardNext();
+  input.focus();
+}
+function removeSubtaskDraft(index) {
+  if (!ui.wizard) return;
+  ui.wizard.data.subtasks.splice(index, 1);
+  var list = $('sub-list');
+  if (!list) return;
+  var row = list.children[index];
+  if (row) row.remove();
+  Array.prototype.forEach.call(list.children, function (li, i) {
+    var n = li.querySelector('.chip-n');
+    var b = li.querySelector('[data-action="remove-sub"]');
+    if (n) n.textContent = String(i + 1);
+    if (b) b.setAttribute('data-i', String(i));
+  });
+  updateWizardNext();
+  var input = $('sub-draft');
+  if (input) input.focus();
+}
+function wizardBack() {
+  readWizardField();
+  if (ui.wizard.step === 0) { closeOverlay(); return; }
+  ui.wizard.step -= 1;
+  paintWizard();
+}
+function wizardNext() {
+  var step = WIZARD_STEPS[ui.wizard.step];
+  if (step.key === 'subtasks') {
+    var draft = $('sub-draft');
+    if (draft && draft.value.trim()) {
+      ui.wizard.data.subtasks.push(draft.value.trim());
+      draft.value = '';
+    }
+    if (!ui.wizard.data.subtasks.length) return;
+  } else {
+    readWizardField();
+    if (!step.optional && !String(ui.wizard.data[step.key] || '').trim()) return;
+  }
+  if (ui.wizard.step === WIZARD_STEPS.length - 1) { finishWizard(); return; }
+  ui.wizard.step += 1;
+  paintWizard();
+}
+function finishWizard() {
+  readWizardField();
+  var data = ui.wizard.data;
+  var goal = {
+    id: uid(),
+    title: data.specific.trim(),
+    measurable: data.measurable.trim(),
+    relevant: data.relevant.trim(),
+    deadline: data.timebound,
+    createdAt: todayStr(),
+    note: '',
+    subtasks: data.subtasks.map(function (t) { return { id: uid(), text: t, done: false, completedAt: null }; })
+  };
+  state.goals.unshift(goal);
+  state.focusGoalId = goal.id;
+  saveState();
+  closeOverlay();
+  renderToday(); renderOthers(); renderCreate(); updateHistoryVisibility(); observeHero();
+  $('today').scrollIntoView({ behavior: prefersReduce() ? 'auto' : 'smooth', block: 'start' });
+}
+function closeOverlay() {
+  if (ui.overlayKind === 'timer' || ui.overlayKind === 'timer-done') clearInterval(ui.timerId);
+  ui.overlayKind = null;
+  ui.wizard = null;
+  $('overlay').innerHTML = '';
+  $('overlay').className = '';
+  document.body.classList.remove('modal-open');
+  var back = ui.returnFocus;
+  ui.returnFocus = null;
+  if (back && back.isConnected) back.focus();
+  else if ($('hero-cta')) $('hero-cta').focus();
+  syncDock();
+}
+function applyKeyboardCompact() {
+  if (ui.overlayKind !== 'wizard') return;
+  var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  if (!ui.maxSeen || vh > ui.maxSeen) ui.maxSeen = vh;
+  var keyboard = vh < ui.maxSeen * 0.75;
+  var guide = $('wizard-guide');
+  var hint = $('wizard-hint');
+  var overlay = $('wizard-overlay');
+  var card = $('wizard-card');
+  if (overlay) overlay.style.height = vh + 'px';
+  if (card) card.style.maxHeight = Math.round(vh * 0.96) + 'px';
+  if (guide) guide.hidden = keyboard;
+  if (hint) hint.hidden = keyboard;
+}
+function isVisibleFocusable(el) {
+  return !el.hidden && !el.disabled && el.tabIndex !== -1 && !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+function startTimer(goalId, subId, minutes) {
+  clearInterval(ui.timerId);
+  ui.timer = { goalId: goalId, subId: subId, total: minutes * 60, seconds: minutes * 60, running: true, endsAt: Date.now() + minutes * 60000 };
+  ui.returnFocus = document.activeElement;
+  ui.overlayKind = 'timer';
+  document.body.classList.add('modal-open');
+  paintTimer();
+  ui.timerId = setInterval(tickTimer, 250);
+  syncDock();
+}
+function tickTimer() {
+  if (!ui.timer || !ui.timer.running) return;
+  var left = Math.max(0, Math.round((ui.timer.endsAt - Date.now()) / 1000));
+  ui.timer.seconds = left;
+  if (left <= 0) { timerFinished(); return; }
+  paintTimerDigits();
+}
+function paintTimerDigits() {
+  var t = ui.timer;
+  if (!t) return;
+  var timeEl = $('timer-time');
+  if (timeEl) {
+    timeEl.textContent = String(Math.floor(t.seconds / 60)).padStart(2, '0') + ':' + String(t.seconds % 60).padStart(2, '0');
+  }
+  var circle = $('timer-circle');
+  if (circle) {
+    var circ = 2 * Math.PI * 45;
+    var pct = 1 - (t.seconds / t.total);
+    circle.setAttribute('stroke-dashoffset', String(circ * (1 - pct)));
+  }
+}
+function paintTimer() {
+  var t = ui.timer;
+  var goal = findGoal(t.goalId);
+  var sub = goal && goal.subtasks.find(function (s) { return s.id === t.subId; });
+  var circ = 2 * Math.PI * 45;
+  var pct = 1 - (t.seconds / t.total);
+  $('overlay').innerHTML = '<div class="overlay is-timer"><div class="timer-wrap" role="dialog" aria-modal="true" aria-labelledby="timer-title">' +
+    '<p class="timer-kicker">' + esc(goal ? goal.title : '') + '</p>' +
+    '<h2 class="timer-title" id="timer-title">' + esc(sub ? sub.text : '') + '</h2>' +
+    '<p class="timer-sub">終わらなくても、ここで切っていい。</p>' +
+    '<div class="timer-ring" role="timer" aria-label="集中タイマー"><svg width="220" height="220" viewBox="0 0 100 100" aria-hidden="true" style="transform:rotate(-90deg)">' +
+      '<circle cx="50" cy="50" r="45" fill="none" stroke="#3A3458" stroke-width="6"></circle>' +
+      '<circle id="timer-circle" cx="50" cy="50" r="45" fill="none" stroke="#F3C1B6" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + circ + '" stroke-dashoffset="' + (circ * (1 - pct)) + '"></circle></svg>' +
+      '<div class="timer-time" id="timer-time"></div></div>' +
+    '<div class="timer-actions"><button type="button" class="tbtn quiet" data-action="timer-cancel">やめる</button>' +
+    '<button type="button" class="tbtn btn-primary timer-primary" id="timer-pause" data-action="timer-pause">' + (t.running ? '一時停止' : '再開') + '</button></div></div></div>';
+  paintTimerDigits();
+  var pause = $('timer-pause');
+  if (pause) pause.focus();
+}
+function timerFinished() {
+  clearInterval(ui.timerId);
+  if (!ui.timer) return;
+  ui.timer.running = false;
+  ui.timer.seconds = 0;
+  ui.overlayKind = 'timer-done';
+  var goal = findGoal(ui.timer.goalId);
+  var sub = goal && goal.subtasks.find(function (s) { return s.id === ui.timer.subId; });
+  $('overlay').innerHTML = '<div class="overlay is-timer"><div class="timer-wrap" role="dialog" aria-modal="true" aria-labelledby="timer-done-title">' +
+    '<h2 class="timer-title" id="timer-done-title">時間になった</h2>' +
+    '<p class="timer-sub">' + esc(sub ? sub.text : '') + '<br>区切れたところまでで、完了にできる。途中なら、そのままでいい。</p>' +
+    '<div class="timer-actions"><button type="button" class="tbtn quiet" data-action="timer-keep">まだ途中</button>' +
+    '<button type="button" id="timer-done" class="tbtn btn-primary timer-primary" data-check data-action="timer-finish"><span class="check-pop">' + CHECK_SVG + '</span><span class="cta-label">完了にする</span></button></div></div></div>';
+  $('timer-done').focus();
+}
+function pauseTimer() {
+  if (!ui.timer) return;
+  if (ui.timer.running) {
+    ui.timer.running = false;
+    ui.timer.seconds = Math.max(0, Math.round((ui.timer.endsAt - Date.now()) / 1000));
+  } else {
+    ui.timer.running = true;
+    ui.timer.endsAt = Date.now() + ui.timer.seconds * 1000;
+  }
+  var btn = $('timer-pause');
+  if (btn) btn.textContent = ui.timer.running ? '一時停止' : '再開';
+}
+function cancelTimer() {
+  clearInterval(ui.timerId);
+  ui.timer = null;
+  closeOverlay();
+}
+function keepTimer() {
+  clearInterval(ui.timerId);
+  ui.timer = null;
+  showReward('続きは、あとででいい。', false, true);
+  closeOverlay();
+}
+function finishTimer() {
+  if (!ui.timer) return;
+  var goalId = ui.timer.goalId, subId = ui.timer.subId;
+  var btn = $('timer-done');
+  clearInterval(ui.timerId);
+  ui.timer = null;
+  completeStep(goalId, subId, btn);
+  window.setTimeout(function () {
+    if (ui.overlayKind === 'timer-done' || ui.overlayKind === 'timer') closeOverlay();
+  }, 700);
+}
+
+function isStandalone() {
+  try { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+  catch (e) { return false; }
+}
+function detectPlatform() {
+  var ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua) || (ua.indexOf('Macintosh') > -1 && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return 'other';
+}
+function openInstall() {
+  ui.returnFocus = document.activeElement;
+  ui.overlayKind = 'install';
+  document.body.classList.add('modal-open');
+  var steps = {
+    ios: ['画面下（または上）の共有ボタンをタップ', '「ホーム画面に追加」を選ぶ', '右上の「追加」をタップして完了'],
+    android: ['右上の「⋮」メニューを開く', '「ホーム画面に追加」または「アプリをインストール」を選ぶ', '「追加」をタップして完了'],
+    other: ['ブラウザのメニューを開く', '「ホーム画面に追加」に近い項目を探す', '案内に沿って追加すれば完了']
+  }[detectPlatform()];
+  $('overlay').innerHTML = '<div class="overlay"><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="install-title">' +
+    '<button type="button" class="modal-close" data-action="close-overlay" aria-label="閉じる">×</button>' +
+    '<div class="modal-body"><div class="guide-icon" aria-hidden="true">＋</div><h2 class="install-title" id="install-title">ホーム画面に追加する</h2>' +
+    '<p class="hint">アイコンから開けるようになる。ブラウザを探す手間が、開始のハードルを一つ減らす。</p>' +
+    steps.map(function (text, i) { return '<div class="guide-step"><div class="guide-n">' + (i + 1) + '</div><div>' + text + '</div></div>'; }).join('') +
+    '<button type="button" class="btn-primary guide-done" data-action="close-overlay">わかった</button></div></div></div>';
+  syncDock();
+}
+
+function syncDockLabel() {
+  var hero = $('hero-cta');
+  var label = $('dock-label');
+  var dockBtn = $('dock-cta');
+  if (!hero || !label || !dockBtn) return;
+  var text = (hero.querySelector('.cta-label') || hero).textContent.trim();
+  label.textContent = text;
+  var step = document.querySelector('#featured-step .step-text');
+  dockBtn.setAttribute('aria-label', hero.getAttribute('data-action') === 'complete' && step ? (text + '。' + step.textContent) : text);
+}
+function syncDock() {
+  var dock = $('dock');
+  var btn = $('dock-cta');
+  var hero = $('hero-cta');
+  if (!dock || !btn) return;
+  if (ui.overlayKind || !hero) {
+    dock.classList.remove('is-on');
+    dock.setAttribute('aria-hidden', 'true');
+    btn.tabIndex = -1;
+    document.body.classList.remove('dock-on');
+    return;
+  }
+  var rect = hero.getBoundingClientRect();
+  var inView = rect.bottom > 8 && rect.top < window.innerHeight - 8 && rect.width > 0 && rect.height > 0;
+  var on = !inView;
+  if (!on && document.activeElement === btn && hero) hero.focus();
+  dock.classList.toggle('is-on', on);
+  dock.setAttribute('aria-hidden', on ? 'false' : 'true');
+  btn.tabIndex = on ? 0 : -1;
+  document.body.classList.toggle('dock-on', on);
+  syncDockLabel();
+}
+function observeHero() {
+  if (ui.heroIO) ui.heroIO.disconnect();
+  var hero = $('hero-cta');
+  syncDockLabel();
+  if (!hero) { syncDock(); return; }
+  ui.heroIO = new IntersectionObserver(function () { syncDock(); }, { threshold: 0 });
+  ui.heroIO.observe(hero);
+  syncDock();
+}
+
+function onAction(el) {
+  var action = el.getAttribute('data-action');
+  if (action === 'complete') completeStep(el.getAttribute('data-goal'), el.getAttribute('data-sub'), el);
+  else if (action === 'undo-step') undoStep(el.getAttribute('data-goal'), el.getAttribute('data-sub'));
+  else if (action === 'undo-last' && ui.lastAction) undoStep(ui.lastAction.goalId, ui.lastAction.subId);
+  else if (action === 'open-wizard') openWizard();
+  else if (action === 'mirror-hero') {
+    var heroBtn = $('hero-cta');
+    if (!heroBtn) return;
+    ui.mirror = true;
+    heroBtn.click();
+    ui.mirror = false;
+  }
+  else if (action === 'toggle-presets') {
+    var panel = $('presets');
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    el.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+  } else if (action === 'start-timer') startTimer(el.getAttribute('data-goal'), el.getAttribute('data-sub'), parseInt(el.getAttribute('data-min'), 10));
+  else if (action === 'delete-goal') deleteGoal(el.getAttribute('data-goal'));
+  else if (action === 'undo-delete') undoDelete();
+  else if (action === 'reopen') reopenGoal(el.getAttribute('data-goal'));
+  else if (action === 'make-focus') makeFocus(el.getAttribute('data-goal'));
+  else if (action === 'wizard-back') wizardBack();
+  else if (action === 'wizard-next') wizardNext();
+  else if (action === 'add-sub') addSubtaskDraft();
+  else if (action === 'remove-sub') removeSubtaskDraft(parseInt(el.getAttribute('data-i'), 10));
+  else if (action === 'close-overlay') closeOverlay();
+  else if (action === 'timer-pause') pauseTimer();
+  else if (action === 'timer-cancel') cancelTimer();
+  else if (action === 'timer-keep') keepTimer();
+  else if (action === 'timer-finish') finishTimer();
+  else if (action === 'install') openInstall();
+}
+
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-action]');
+  if (!el) return;
+  onAction(el);
+});
+document.addEventListener('input', function (e) {
+  if (e.target.id === 'today-note') {
+    var goal = featuredGoal();
+    if (goal && $('today-card') && $('today-card').getAttribute('data-goal') === goal.id) {
+      goal.note = e.target.value;
+      saveState();
+    }
+  }
+  if (e.target.id === 'wizard-field' || e.target.id === 'sub-draft') {
+    if (e.target.id === 'wizard-field' && ui.wizard) {
+      var step = WIZARD_STEPS[ui.wizard.step];
+      if (step && step.key !== 'subtasks') ui.wizard.data[step.key] = e.target.value;
+    }
+    updateWizardNext();
+  }
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && e.target && e.target.id === 'sub-draft') { e.preventDefault(); addSubtaskDraft(); return; }
+  if (e.key === 'Escape' && (ui.overlayKind === 'wizard' || ui.overlayKind === 'install')) { e.preventDefault(); closeOverlay(); return; }
+  if (e.key !== 'Tab' || !ui.overlayKind) return;
+  var root = $('overlay');
+  var items = Array.prototype.filter.call(root.querySelectorAll('button, [href], input, textarea, select'), isVisibleFocusable);
+  if (!items.length) return;
+  var first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+if (window.visualViewport) window.visualViewport.addEventListener('resize', applyKeyboardCompact);
+window.addEventListener('resize', syncDock);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+
+function boot() {
+  renderToday();
+  renderOthers();
+  renderArchive();
+  renderHistory();
+  renderCreate();
+  if (!isStandalone()) $('install-btn').hidden = false;
+  observeHero();
+}
+boot();
 </script>
 </body>
 </html>
